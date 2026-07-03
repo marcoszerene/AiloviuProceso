@@ -50,6 +50,25 @@
         </div>
     </div>
 
+    <!-- Modal de Confirmación Personalizado (Reemplaza confirm() nativo) -->
+    <div id="custom-confirm-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs hidden transition-all duration-300">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 transform transition-all scale-95 duration-200" id="confirm-modal-box">
+            <div class="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mb-4">
+                <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-base font-bold text-slate-900" id="confirm-modal-title">¿Estás seguro?</h3>
+            <p class="text-xs text-slate-500 mt-2 leading-relaxed" id="confirm-modal-message">Esta acción se reflejará permanentemente.</p>
+            <div class="flex gap-3 mt-6">
+                <button id="confirm-modal-cancel" class="flex-1 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors">
+                    Cancelar
+                </button>
+                <button id="confirm-modal-action" class="flex-1 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-lg transition-colors">
+                    Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Encabezado Principal -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-40 px-4 md:px-6 py-4 shadow-sm">
         <div class="max-w-[1700px] mx-auto flex flex-col lg:flex-row justify-between items-center gap-4">
@@ -68,7 +87,7 @@
                         Tablero de Proyectos
                     </h1>
                 </div>
-                <!-- Indicador de Sincronización en la Nube -->
+                <!-- Indicador de Sincronización en la Nube / Local -->
                 <div class="ml-auto lg:ml-4 flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full text-[11px] font-bold text-slate-600" id="cloud-status-badge">
                     <span class="relative flex h-2 w-2">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
@@ -105,7 +124,7 @@
         <div class="max-w-[1700px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
             <div class="flex items-center gap-2">
                 <i data-lucide="users" class="text-[#028090] w-4 h-4"></i>
-                <span class="text-xs font-bold text-[#028090] uppercase tracking-wider">Espacio de Trabajo Compartido:</span>
+                <span class="text-xs font-bold text-[#028090] uppercase tracking-wider">Espacio de Trabajo:</span>
                 <span id="active-project-name" class="text-sm font-extrabold text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-xs">Cargando proyecto...</span>
             </div>
             
@@ -161,10 +180,10 @@
             </div>
 
             <!-- Banner Informativo de Colaboración -->
-            <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-xl mt-6">
+            <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-xl mt-6" id="collaboration-banner">
                 <div class="flex gap-2 items-start">
                     <i data-lucide="sparkles" class="text-indigo-600 w-4 h-4 shrink-0 mt-0.5 animate-pulse"></i>
-                    <p class="text-[11px] text-indigo-900 leading-relaxed font-medium">
+                    <p class="text-[11px] text-indigo-900 leading-relaxed font-medium" id="collaboration-banner-text">
                         <strong>¡Socio conectado!</strong> Ambos pueden editar en vivo. Los cambios se sincronizan al instante en la computadora del otro.
                     </p>
                 </div>
@@ -468,8 +487,8 @@
                             <div class="bg-[#96c11f] text-slate-950 p-3 rounded-md shadow-xs text-center">
                                 <p class="text-[10px] uppercase tracking-wider font-extrabold opacity-80">Meta de esta fase:</p>
                                 <ul class="text-[11px] font-bold mt-1.5 space-y-0.5">
-                                    <li>• Establecer parámetros básicos</li>
-                                    <li>• Selección del diseñador</li>
+                                    <li>• Establecer parámetros</li>
+                                    <li>• Selección de diseñador</li>
                                 </ul>
                             </div>
                             <!-- Goal 2 -->
@@ -484,7 +503,7 @@
                             <div class="bg-[#96c11f] text-slate-950 p-3 rounded-md shadow-xs text-center">
                                 <p class="text-[10px] uppercase tracking-wider font-extrabold opacity-80">Meta de esta fase:</p>
                                 <ul class="text-[11px] font-bold mt-1.5 space-y-0.5">
-                                    <li>• Diseñar estrategia general</li>
+                                    <li>• Diseñar estrategia</li>
                                     <li>• Entregables clave</li>
                                 </ul>
                             </div>
@@ -492,7 +511,7 @@
                             <div class="bg-[#96c11f] text-slate-950 p-3 rounded-md shadow-xs text-center">
                                 <p class="text-[10px] uppercase tracking-wider font-extrabold opacity-80">Meta de esta fase:</p>
                                 <ul class="text-[11px] font-bold mt-1.5 space-y-0.5">
-                                    <li>• Generar ideas previas</li>
+                                    <li>• Generar ideas</li>
                                     <li>• Evaluar conceptos</li>
                                 </ul>
                             </div>
@@ -501,7 +520,7 @@
                                 <p class="text-[10px] uppercase tracking-wider font-extrabold opacity-80">Meta de esta fase:</p>
                                 <ul class="text-[11px] font-bold mt-1.5 space-y-0.5">
                                     <li>• Madurar las ideas</li>
-                                    <li>• Seleccionar dirección</li>
+                                    <li>• Elegir dirección</li>
                                 </ul>
                             </div>
                             <!-- Goal 6 -->
@@ -632,7 +651,7 @@
     <!-- Footer -->
     <footer class="bg-white border-t border-slate-200 py-6 mt-12 shrink-0">
         <div class="max-w-[1700px] mx-auto px-6 text-center text-slate-400 text-xs space-y-2">
-            <p>© 2026 Proceso de Gestión de Diseño. Adaptación interactiva y traducción autorizada con almacenamiento en la nube.</p>
+            <p>© 2026 Proceso de Gestión de Diseño. Adaptación interactiva y traducción autorizada con almacenamiento seguro.</p>
             <div class="flex flex-wrap justify-center gap-x-6 gap-y-2 font-medium">
                 <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-[#028090] rounded-full inline-block"></span> Descubrir & Definir (Comprender / Idear)</span>
                 <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-[#0077b6] rounded-full inline-block"></span> Desarrollar & Entregar (Ejecutar)</span>
@@ -666,7 +685,7 @@
                     "Reunión de discusión preliminar y revisión de portafolio.",
                     "El cliente emite una RFP (Solicitud de propuesta de servicios).",
                     "Los diseñadores analizan la RFP y presentan su propuesta económica y de trabajo.",
-                    "El cliente evalúa, acepta la propuesta y confirma al diseñador.",
+                    "El cliente acepta la propuesta y confirma al diseñador.",
                     "El diseñador cobra el depósito inicial de garantía."
                 ]
             },
@@ -807,21 +826,34 @@
             }
         ];
 
-        // variables provistas por el ambiente
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        // Detección automática del Entorno
+        const hasFirebase = typeof __firebase_config !== 'undefined';
+        const LOCAL_STORAGE_KEY = 'gestor_proyectos_diseno_local';
+        
+        let db = null;
+        let auth = null;
+        let appId = 'default-app-id';
 
-        // Variables de estado local sincronizadas
+        if (hasFirebase) {
+            try {
+                const firebaseConfig = JSON.parse(__firebase_config);
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            } catch (err) {
+                console.error("Fallo al inicializar Firebase. Forzando fallback local:", err);
+            }
+        }
+
+        // Variables de estado local
         let currentUser = null;
         let activeView = 'chart';
         let activeStepId = 1;
         let projects = [];
         let activeProject = null;
 
-        // Elementos de la interfaz de usuario
+        // Elementos del DOM
         const toastEl = document.getElementById('toast');
         const toastMessageEl = document.getElementById('toast-message');
         const cloudStatusBadge = document.getElementById('cloud-status-badge');
@@ -830,7 +862,26 @@
         const projectsListEl = document.getElementById('projects-list');
         const activeProjectNameEl = document.getElementById('active-project-name');
 
-        // Notificaciones Toast (sin usar alertas molestas)
+        // Guardado local seguro
+        function getLocalProjects() {
+            try {
+                const localData = localStorage.getItem(LOCAL_STORAGE_KEY);
+                return localData ? JSON.parse(localData) : [];
+            } catch (e) {
+                console.error("Error leyendo LocalStorage:", e);
+                return [];
+            }
+        }
+
+        function saveLocalProjects(projectsArray) {
+            try {
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(projectsArray));
+            } catch (e) {
+                console.error("Error escribiendo en LocalStorage:", e);
+            }
+        }
+
+        // Toasts informativos
         function showToast(message, type = 'info') {
             toastMessageEl.innerText = message;
             const container = document.getElementById('toast-icon-container');
@@ -849,7 +900,31 @@
             }, 3500);
         }
 
-        // Indicador de conexión
+        // Modal de Confirmación que reemplaza a confirm()
+        function askConfirmation(title, message, onConfirm) {
+            const modal = document.getElementById('custom-confirm-modal');
+            const titleEl = document.getElementById('confirm-modal-title');
+            const messageEl = document.getElementById('confirm-modal-message');
+            const cancelBtn = document.getElementById('confirm-modal-cancel');
+            const actionBtn = document.getElementById('confirm-modal-action');
+
+            titleEl.innerText = title;
+            messageEl.innerText = message;
+
+            modal.classList.remove('hidden');
+
+            const closeModal = () => {
+                modal.classList.add('hidden');
+            };
+
+            cancelBtn.onclick = closeModal;
+            actionBtn.onclick = () => {
+                onConfirm();
+                closeModal();
+            };
+        }
+
+        // Cambiar el estado visual del indicador de sincronización
         function updateCloudIndicator(status) {
             if (status === 'syncing') {
                 cloudStatusDot.className = "relative inline-flex rounded-full h-2 w-2 bg-amber-500";
@@ -859,73 +934,112 @@
                 cloudStatusDot.className = "relative inline-flex rounded-full h-2 w-2 bg-emerald-500";
                 cloudStatusText.innerText = "Sincronizado";
                 cloudStatusBadge.className = "ml-auto lg:ml-4 flex items-center gap-1.5 bg-emerald-50 px-3 py-1.5 rounded-full text-[11px] font-bold text-emerald-700 border border-emerald-200";
+            } else if (status === 'local') {
+                cloudStatusDot.className = "relative inline-flex rounded-full h-2 w-2 bg-blue-500";
+                cloudStatusText.innerText = "Local (GitHub)";
+                cloudStatusBadge.className = "ml-auto lg:ml-4 flex items-center gap-1.5 bg-blue-50 px-3 py-1.5 rounded-full text-[11px] font-bold text-blue-700 border border-blue-200";
+                cloudStatusBadge.title = "Guardando de forma segura en este navegador (localStorage).";
             } else if (status === 'error') {
                 cloudStatusDot.className = "relative inline-flex rounded-full h-2 w-2 bg-rose-500";
-                cloudStatusText.innerText = "Error de Red";
+                cloudStatusText.innerText = "Error";
                 cloudStatusBadge.className = "ml-auto lg:ml-4 flex items-center gap-1.5 bg-rose-50 px-3 py-1.5 rounded-full text-[11px] font-bold text-rose-700 border border-rose-200";
             }
         }
 
-        // Inicialización y Autenticación Anónima o con Token
-        const initAuth = async () => {
-            updateCloudIndicator('syncing');
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
+        // Configurar arranque seguro
+        async function startApp() {
+            if (hasFirebase && db) {
+                updateCloudIndicator('syncing');
+                try {
+                    let user;
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        const cred = await signInWithCustomToken(auth, __initial_auth_token);
+                        user = cred.user;
+                    } else {
+                        const cred = await signInAnonymously(auth);
+                        user = cred.user;
+                    }
+
+                    if (user) {
+                        currentUser = user;
+                        // Sincronizar cambios en vivo (Regla 1 y 2)
+                        subscribeToProjects();
+                    } else {
+                        throw new Error("No auth user returned");
+                    }
+                } catch (err) {
+                    console.error("Error autenticando Firebase. Pasando a LocalStorage:", err);
+                    startLocalStorageMode();
                 }
-            } catch (err) {
-                console.error("Error autenticación:", err);
-                showToast("Fallo al conectar con la nube. Modo lectura activado.", "error");
-                updateCloudIndicator('error');
+            } else {
+                startLocalStorageMode();
             }
-        };
+        }
 
-        // Escuchar cambios de Auth
-        onAuthStateChanged(auth, (user) => {
-            currentUser = user;
-            if (user) {
-                // Iniciar escucha en tiempo real de los proyectos compartidos
-                subscribeToProjects();
+        // Activar entorno LocalStorage fuera de nuestra plataforma
+        function startLocalStorageMode() {
+            // Modificar banner visual explicativo
+            const banner = document.getElementById('collaboration-banner');
+            const bannerText = document.getElementById('collaboration-banner-text');
+            banner.className = "bg-blue-50 border border-blue-100 p-4 rounded-xl mt-6";
+            bannerText.innerHTML = "<strong>Almacenamiento Local Activo.</strong> Los cambios se guardan automáticamente en tu navegador. Perfecto para mostrar tu portafolio.";
+
+            updateCloudIndicator('local');
+
+            // Leer base de datos local
+            const localList = getLocalProjects();
+            
+            // Si está completamente vacía la inicializamos con un ejemplo elegante
+            if (localList.length === 0) {
+                localList.push({
+                    id: 'local-demo',
+                    name: 'Proyecto de Marca Corporativa',
+                    createdAt: Date.now(),
+                    updatedAt: Date.now(),
+                    tasksState: {}
+                });
+                saveLocalProjects(localList);
             }
-        });
 
-        // Suscripción en Tiempo Real a Firestore (Regla 1, 2 y 3)
+            projects = localList.sort((a, b) => b.updatedAt - a.updatedAt);
+            renderProjectsList();
+
+            if (projects.length > 0) {
+                selectProject(projects[0].id);
+            }
+        }
+
         let unsubscribeProjects = null;
         function subscribeToProjects() {
             if (!currentUser) return;
 
-            // Ruta estricta de datos públicos (Regla 1)
+            // Ruta de acceso estricta para persistencia pública compartida (Regla 1)
             const projectsCollection = collection(db, 'artifacts', appId, 'public', 'data', 'projects');
 
-            // Suscripción de tiempo real con onSnapshot (Regla 2: Sin queries complejos de Firebase)
+            // Escuchar cambios en vivo de manera óptima (Regla 2: Ordenado localmente en JS)
             unsubscribeProjects = onSnapshot(projectsCollection, (snapshot) => {
-                const fetchedProjects = [];
+                const fetched = [];
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    fetchedProjects.push({
+                    fetched.push({
                         id: doc.id,
-                        name: data.name || "Proyecto sin nombre",
+                        name: data.name || "Sin nombre",
                         createdAt: data.createdAt || Date.now(),
                         updatedAt: data.updatedAt || Date.now(),
                         tasksState: data.tasksStateJson ? JSON.parse(data.tasksStateJson) : {}
                     });
                 });
 
-                // Ordenar proyectos en memoria JS por fecha de actualización (Regla 2)
-                projects = fetchedProjects.sort((a, b) => b.updatedAt - a.updatedAt);
-                
+                projects = fetched.sort((a, b) => b.updatedAt - a.updatedAt);
                 renderProjectsList();
 
-                // Si no hay proyecto activo o el que estaba activo fue eliminado
                 if (projects.length > 0) {
                     if (!activeProject || !projects.find(p => p.id === activeProject.id)) {
                         selectProject(projects[0].id);
                     } else {
-                        // Actualizar datos del proyecto activo actual con los nuevos cambios de la nube
-                        const updatedActive = projects.find(p => p.id === activeProject.id);
-                        activeProject = updatedActive;
+                        // Sincronizar el proyecto activo sin perder estado de vista del usuario
+                        const updated = projects.find(p => p.id === activeProject.id);
+                        activeProject = updated;
                         activeProjectNameEl.innerText = activeProject.name;
                         updateChecklistProgressUI();
                         if (activeView === 'interactive') {
@@ -943,63 +1057,95 @@
                 }
                 updateCloudIndicator('synced');
             }, (error) => {
-                console.error("Error al sincronizar base de datos:", error);
+                console.error("Error sincronizando cambios:", error);
                 updateCloudIndicator('error');
-                showToast("Error de permisos al sincronizar la base de datos.", "error");
+                showToast("Fallo de permisos al leer la base de datos.", "error");
             });
         }
 
-        // Crear nuevo proyecto colaborativo
+        // Crear nuevo cliente o proyecto
         window.createNewProject = async () => {
-            if (!currentUser) {
-                showToast("Espera a que se establezca la conexión.", "error");
-                return;
-            }
             const input = document.getElementById('newProjectName');
             const name = input.value.trim();
             if (!name) return;
 
-            updateCloudIndicator('syncing');
-            try {
-                const projectsCollection = collection(db, 'artifacts', appId, 'public', 'data', 'projects');
-                const initialTasksState = {};
-                
-                await addDoc(projectsCollection, {
+            if (hasFirebase && currentUser) {
+                updateCloudIndicator('syncing');
+                try {
+                    const projectsCollection = collection(db, 'artifacts', appId, 'public', 'data', 'projects');
+                    await addDoc(projectsCollection, {
+                        name: name,
+                        createdAt: Date.now(),
+                        updatedAt: Date.now(),
+                        tasksStateJson: JSON.stringify({})
+                    });
+                    input.value = "";
+                    showToast(`Proyecto "${name}" creado exitosamente`, "success");
+                } catch (err) {
+                    console.error("Error guardando proyecto en la nube:", err);
+                    showToast("Error de conexión. Inténtalo de nuevo.", "error");
+                    updateCloudIndicator('error');
+                }
+            } else {
+                // Almacenamiento local para GitHub
+                const newProj = {
+                    id: 'local-' + Date.now(),
                     name: name,
                     createdAt: Date.now(),
                     updatedAt: Date.now(),
-                    tasksStateJson: JSON.stringify(initialTasksState)
-                });
-
+                    tasksState: {}
+                };
+                projects.unshift(newProj);
+                saveLocalProjects(projects);
+                
                 input.value = "";
-                showToast(`Proyecto "${name}" creado exitosamente`, "success");
-            } catch (err) {
-                console.error("Error al crear proyecto:", err);
-                showToast("Error al guardar el proyecto en la nube.", "error");
-                updateCloudIndicator('error');
+                showToast(`Proyecto "${name}" creado de forma local`, "success");
+                selectProject(newProj.id);
             }
         };
 
-        // Eliminar un proyecto
-        window.deleteProject = async (id, name, event) => {
-            event.stopPropagation(); // Evitar seleccionar el proyecto al intentar eliminarlo
+        // Eliminar cliente o proyecto
+        window.deleteProject = (id, name, event) => {
+            event.stopPropagation(); // Evita que se seleccione el proyecto al hacer clic en borrar
             
-            const conf = confirm(`¿Estás seguro de que quieres eliminar el proyecto "${name}"? Esta acción se reflejará para todos tus colaboradores.`);
-            if (!conf) return;
-
-            updateCloudIndicator('syncing');
-            try {
-                const projectDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'projects', id);
-                await deleteDoc(projectDocRef);
-                showToast(`Proyecto "${name}" eliminado`, "success");
-            } catch (err) {
-                console.error("Error al borrar:", err);
-                showToast("Fallo al eliminar el proyecto de la nube.", "error");
-                updateCloudIndicator('error');
-            }
+            askConfirmation(
+                `¿Eliminar "${name}"?`,
+                "Esta acción eliminará todos los progresos de este cliente de forma permanente.",
+                async () => {
+                    if (hasFirebase && currentUser) {
+                        updateCloudIndicator('syncing');
+                        try {
+                            const projectDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'projects', id);
+                            await deleteDoc(projectDocRef);
+                            showToast(`Proyecto "${name}" eliminado de la nube`, "success");
+                        } catch (err) {
+                            console.error("Error eliminando de Firebase:", err);
+                            showToast("No se pudo completar la operación.", "error");
+                            updateCloudIndicator('error');
+                        }
+                    } else {
+                        // Flujo local
+                        projects = projects.filter(p => p.id !== id);
+                        saveLocalProjects(projects);
+                        showToast(`Proyecto "${name}" eliminado de este navegador`, "success");
+                        
+                        if (projects.length > 0) {
+                            selectProject(projects[0].id);
+                        } else {
+                            activeProject = null;
+                            activeProjectNameEl.innerText = "Ningún proyecto activo";
+                            updateChecklistProgressUI();
+                            if (activeView === 'interactive') {
+                                renderStepSelectors();
+                            }
+                        }
+                        renderProjectsList();
+                    }
+                }
+            );
         };
 
-        // Seleccionar proyecto para visualizar/editar
+        // Seleccionar proyecto para visualización
         window.selectProject = (id) => {
             const found = projects.find(p => p.id === id);
             if (found) {
@@ -1008,11 +1154,11 @@
                 updateChecklistProgressUI();
                 renderStepSelectors();
                 selectStep(activeStepId);
-                renderProjectsList(); // Actualizar clases de proyecto activo
+                renderProjectsList();
             }
         };
 
-        // Dibujar proyectos en el sidebar
+        // Dibujar clientes en el sidebar
         function renderProjectsList() {
             projectsListEl.innerHTML = "";
 
@@ -1030,7 +1176,7 @@
             projects.forEach(p => {
                 const isActive = activeProject && activeProject.id === p.id;
                 
-                // Calcular progreso del proyecto
+                // Calcular progreso dinámico
                 let totalTasks = 0;
                 let completedTasks = 0;
                 designSteps.forEach(step => {
@@ -1065,7 +1211,7 @@
             lucide.createIcons();
         }
 
-        // Marcar/Desmarcar una tarea en el checklist
+        // Guardar estado al marcar un checklist
         window.toggleTask = async (stepId, taskIndex, isChecked) => {
             if (!activeProject) {
                 showToast("Crea o selecciona un proyecto antes de marcar tareas.", "error");
@@ -1081,45 +1227,73 @@
             updateChecklistProgressUI();
             updateStepStatusHeader(stepId);
 
-            updateCloudIndicator('syncing');
-
-            try {
-                // Guardado en la nube con Firestore
-                const projectDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'projects', activeProject.id);
-                await setDoc(projectDocRef, {
-                    updatedAt: Date.now(),
-                    tasksStateJson: JSON.stringify(activeProject.tasksState)
-                }, { merge: true });
-                updateCloudIndicator('synced');
-            } catch (err) {
-                console.error("Error al actualizar tarea:", err);
-                showToast("Fallo de conexión. No se pudo guardar el cambio.", "error");
-                updateCloudIndicator('error');
+            if (hasFirebase && currentUser) {
+                updateCloudIndicator('syncing');
+                try {
+                    const projectDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'projects', activeProject.id);
+                    await setDoc(projectDocRef, {
+                        updatedAt: Date.now(),
+                        tasksStateJson: JSON.stringify(activeProject.tasksState)
+                    }, { merge: true });
+                    updateCloudIndicator('synced');
+                } catch (err) {
+                    console.error("Error guardando progreso en Firebase:", err);
+                    showToast("Sin conexión de red temporal.", "error");
+                    updateCloudIndicator('error');
+                }
+            } else {
+                // Sincronizar en el arreglo local de memoria
+                const idx = projects.findIndex(p => p.id === activeProject.id);
+                if (idx !== -1) {
+                    projects[idx].tasksState = activeProject.tasksState;
+                    projects[idx].updatedAt = Date.now();
+                    saveLocalProjects(projects);
+                }
+                renderProjectsList(); // Recarga la barra porcentual lateral
             }
         };
 
-        // Reiniciar todo el checklist del proyecto activo actual
-        window.resetActiveProjectChecklist = async () => {
+        // Resetear progreso de un cliente seleccionado
+        window.resetActiveProjectChecklist = () => {
             if (!activeProject) return;
 
-            const conf = confirm(`¿Estás seguro de que quieres limpiar todo el progreso del proyecto "${activeProject.name}"?`);
-            if (!conf) return;
-
-            updateCloudIndicator('syncing');
-            try {
-                const projectDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'projects', activeProject.id);
-                await setDoc(projectDocRef, {
-                    updatedAt: Date.now(),
-                    tasksStateJson: JSON.stringify({})
-                }, { merge: true });
-                showToast("Progreso del proyecto reiniciado", "success");
-            } catch (err) {
-                console.error("Error al reiniciar progreso:", err);
-                updateCloudIndicator('error');
-            }
+            askConfirmation(
+                `¿Reiniciar todo el progreso?`,
+                `Esta acción limpiará absolutamente todas las casillas marcadas para "${activeProject.name}".`,
+                async () => {
+                    if (hasFirebase && currentUser) {
+                        updateCloudIndicator('syncing');
+                        try {
+                            const projectDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'projects', activeProject.id);
+                            await setDoc(projectDocRef, {
+                                updatedAt: Date.now(),
+                                tasksStateJson: JSON.stringify({})
+                            }, { merge: true });
+                            showToast("Progreso del proyecto reiniciado", "success");
+                        } catch (err) {
+                            console.error("Error reiniciando proyecto:", err);
+                            updateCloudIndicator('error');
+                        }
+                    } else {
+                        // Modo local
+                        activeProject.tasksState = {};
+                        const idx = projects.findIndex(p => p.id === activeProject.id);
+                        if (idx !== -1) {
+                            projects[idx].tasksState = {};
+                            projects[idx].updatedAt = Date.now();
+                            saveLocalProjects(projects);
+                        }
+                        updateChecklistProgressUI();
+                        renderStepSelectors();
+                        selectStep(activeStepId);
+                        renderProjectsList();
+                        showToast("Progreso limpiado localmente", "success");
+                    }
+                }
+            );
         };
 
-        // Renderizar los selectores de pasos del checklist interactivo
+        // Pintar barra de progresión de los selectores laterales del Workflow
         window.renderStepSelectors = () => {
             const container = document.getElementById('step-selector-container');
             container.innerHTML = "";
@@ -1130,7 +1304,6 @@
                 btn.onclick = () => selectStep(step.id);
                 btn.className = "w-full text-left p-2.5 rounded-lg border border-slate-100 hover:bg-slate-50 transition-all flex items-center justify-between group";
                 
-                // Calcular progreso local por paso
                 const completedCount = getCompletedTasksCount(step.id);
                 const totalCount = step.tasks.length;
                 const pct = Math.round((completedCount / totalCount) * 100);
@@ -1152,13 +1325,12 @@
             });
         };
 
-        // Seleccionar paso en la vista de checklist
+        // Cambiar selección de paso para mostrar su checklist detallado
         window.selectStep = (id) => {
             activeStepId = id;
             const step = designSteps.find(s => s.id === id);
             if (!step) return;
             
-            // Actualizar clases activas en el menú lateral de pasos
             designSteps.forEach(s => {
                 const el = document.getElementById(`selector-step-${s.id}`);
                 if (el) {
@@ -1170,21 +1342,18 @@
                 }
             });
 
-            // Actualizar interfaz detallada
             document.getElementById('active-step-num').innerText = step.id;
             document.getElementById('active-step-title').innerText = step.title;
             document.getElementById('active-step-subtitle').innerText = `Fase superior: ${step.groupTop} | Secuencia: ${step.groupBottom}`;
             document.getElementById('active-step-goal').innerText = step.meta;
 
-            // Renderizar checklist de tareas
             const checklistContainer = document.getElementById('active-checklist-container');
             checklistContainer.innerHTML = "";
 
             step.tasks.forEach((task, index) => {
                 const checked = isTaskCompleted(step.id, index);
-                
                 const label = document.createElement('label');
-                label.className = `flex items-start gap-3 p-2 rounded-lg border transition-all cursor-pointer ${checked ? 'bg-emerald-50/40 border-emerald-100 text-slate-500' : 'bg-slate-50/50 border-slate-150 hover:bg-slate-100/70 text-slate-800'}`;
+                label.className = `flex items-start gap-3 p-2.5 rounded-lg border transition-all cursor-pointer ${checked ? 'bg-emerald-50/40 border-emerald-100 text-slate-500' : 'bg-slate-50/50 border-slate-150 hover:bg-slate-100/70 text-slate-800'}`;
                 
                 label.innerHTML = `
                     <input type="checkbox" onchange="toggleTask(${step.id}, ${index}, this.checked)" ${checked ? 'checked' : ''} 
@@ -1197,7 +1366,6 @@
             updateStepStatusHeader(step.id);
         };
 
-        // Utilidades de evaluación del Checklist
         function isTaskCompleted(stepId, index) {
             if (!activeProject || !activeProject.tasksState[stepId]) return false;
             return activeProject.tasksState[stepId][index] === true;
@@ -1226,7 +1394,6 @@
             }
         }
 
-        // Barra de progreso y cálculo porcentual
         function updateChecklistProgressUI() {
             if (!activeProject) {
                 document.getElementById('progress-percent').innerText = "0%";
@@ -1247,7 +1414,7 @@
             document.getElementById('progress-fill').style.width = `${percent}%`;
         }
 
-        // Alternar vistas principales
+        // Alternar visualizaciones generales (Matriz vs Checklist)
         window.switchView = (viewName) => {
             activeView = viewName;
             const chartView = document.getElementById('view-chart');
@@ -1274,7 +1441,7 @@
             }
         };
 
-        // Buscador Inteligente
+        // Configuración de búsqueda inteligente sobre la matriz
         function setupSearch() {
             const input = document.getElementById('searchInput');
             input.addEventListener('input', function(e) {
@@ -1283,7 +1450,7 @@
 
                 if (query === "") {
                     stepCards.forEach(card => {
-                        card.classList.remove('bg-yellow-50', 'ring-2', 'ring-yellow-400', 'opacity-40');
+                        card.classList.remove('bg-yellow-50/70', 'ring-2', 'ring-yellow-400', 'opacity-40');
                         card.classList.add('opacity-100');
                     });
                     return;
@@ -1304,7 +1471,7 @@
             });
         }
 
-        // Control para abrir/cerrar menú de proyectos móvil
+        // Control móvil de apertura/cierre de barra de navegación lateral
         window.toggleSidebar = () => {
             const sidebar = document.getElementById('project-sidebar');
             const overlay = document.getElementById('sidebar-overlay');
@@ -1312,10 +1479,10 @@
             overlay.classList.toggle('hidden');
         };
 
-        // Inicialización tras cargar DOM
+        // Ejecutar al cargar la ventana
         window.onload = function() {
             lucide.createIcons();
-            initAuth();
+            startApp();
             setupSearch();
         };
 
