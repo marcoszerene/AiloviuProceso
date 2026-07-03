@@ -50,7 +50,7 @@
         </div>
     </div>
 
-    <!-- Modal de Confirmación Personalizado (Reemplaza confirm() nativo) -->
+    <!-- Modal de Confirmación Personalizado (Reemplaza confirm() nativo de forma estética) -->
     <div id="custom-confirm-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs hidden transition-all duration-300">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 transform transition-all scale-95 duration-200" id="confirm-modal-box">
             <div class="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mb-4">
@@ -65,6 +65,59 @@
                 <button id="confirm-modal-action" class="flex-1 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-lg transition-colors">
                     Confirmar
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Ajustes de Nube Personalizada (Conecta a Firebase de forma visual) -->
+    <div id="cloud-config-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/65 backdrop-blur-xs hidden transition-all duration-300">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 transform transition-all scale-95 duration-200" id="cloud-modal-box">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                    <div class="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+                        <i data-lucide="cloud" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Configurar Nube Personal</h3>
+                        <p class="text-[10px] text-slate-400">Accede a tus datos desde cualquier dispositivo.</p>
+                    </div>
+                </div>
+                <button onclick="toggleCloudModal(false)" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-indigo-50/80 border border-indigo-100 p-3.5 rounded-xl space-y-1.5 text-[11px] text-indigo-950 leading-relaxed">
+                    <p class="font-bold">¿Cómo sincronizar desde cualquier parte?</p>
+                    <ol class="list-decimal pl-4 space-y-1">
+                        <li>Crea un proyecto gratis en <a href="https://console.firebase.google.com" target="_blank" class="underline font-bold text-indigo-600 hover:text-indigo-800">Firebase Console</a>.</li>
+                        <li>Crea una base de datos <strong>Firestore Database</strong> en modo de prueba.</li>
+                        <li>Agrega una aplicación web y copia la variable de configuración <span class="font-semibold italic">firebaseConfig</span>.</li>
+                        <li>Pega ese objeto de configuración aquí abajo.</li>
+                    </ol>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Objeto JSON de Firebase Config:</label>
+                    <textarea id="firebaseConfigInput" rows="6" placeholder='{
+  "apiKey": "AIzaSyA1...",
+  "authDomain": "tu-proyecto.firebaseapp.com",
+  "projectId": "tu-proyecto",
+  "storageBucket": "tu-proyecto.appspot.com",
+  "messagingSenderId": "123456789",
+  "appId": "1:1234:web:abcd"
+}' class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-[#028090] focus:bg-white transition-all"></textarea>
+                </div>
+
+                <div class="flex gap-3">
+                    <button onclick="clearCustomCloudConfig()" class="px-3.5 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-semibold rounded-xl transition-colors flex items-center justify-center gap-1">
+                        <i data-lucide="cloud-off" class="w-3.5 h-3.5"></i> Desconectar Nube
+                    </button>
+                    <button onclick="saveCustomCloudConfig()" class="flex-1 px-4 py-2 bg-[#028090] hover:bg-[#016875] text-white text-xs font-semibold rounded-xl transition-colors shadow-sm flex items-center justify-center gap-1">
+                        <i data-lucide="save" class="w-3.5 h-3.5"></i> Guardar y Conectar
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -88,12 +141,18 @@
                     </h1>
                 </div>
                 <!-- Indicador de Sincronización en la Nube / Local -->
-                <div class="ml-auto lg:ml-4 flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full text-[11px] font-bold text-slate-600" id="cloud-status-badge">
-                    <span class="relative flex h-2 w-2">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500" id="cloud-status-dot"></span>
-                    </span>
-                    <span id="cloud-status-text">Conectando...</span>
+                <div class="ml-auto lg:ml-4 flex items-center gap-2">
+                    <div class="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full text-[11px] font-bold text-slate-600" id="cloud-status-badge">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500" id="cloud-status-dot"></span>
+                        </span>
+                        <span id="cloud-status-text">Conectando...</span>
+                    </div>
+                    <!-- Botón de configuración de nube personal -->
+                    <button onclick="toggleCloudModal(true)" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-full transition-colors" title="Configurar nube personal">
+                        <i data-lucide="settings" class="w-4 h-4"></i>
+                    </button>
                 </div>
             </div>
             
@@ -184,7 +243,7 @@
                 <div class="flex gap-2 items-start">
                     <i data-lucide="sparkles" class="text-indigo-600 w-4 h-4 shrink-0 mt-0.5 animate-pulse"></i>
                     <p class="text-[11px] text-indigo-900 leading-relaxed font-medium" id="collaboration-banner-text">
-                        <strong>¡Socio conectado!</strong> Ambos pueden editar en vivo. Los cambios se sincronizan al instante en la computadora del otro.
+                        <strong>¡Modo Local Activo!</strong> Tus cambios se guardan en este navegador de forma local. Conéctate a la nube personal para sincronizar.
                     </p>
                 </div>
             </div>
@@ -388,7 +447,7 @@
                                             <li>— Prototipos preliminares</li>
                                         </ul>
                                     </li>
-                                    <li>Estos incorporarán elementos preliminares, a menudo provisionales (placeholders), de:
+                                    <li>Estos incorporarían elementos preliminares, a menudo provisionales (placeholders), de:
                                         <ul class="list-none pl-3 italic text-slate-500 my-1 space-y-0.5">
                                             <li>— Texto y mensajes principales</li>
                                             <li>— Imágenes o fotografía</li>
@@ -651,7 +710,7 @@
     <!-- Footer -->
     <footer class="bg-white border-t border-slate-200 py-6 mt-12 shrink-0">
         <div class="max-w-[1700px] mx-auto px-6 text-center text-slate-400 text-xs space-y-2">
-            <p>© 2026 Proceso de Gestión de Diseño. Adaptación interactiva y traducción autorizada con almacenamiento seguro.</p>
+            <p>© 2026 Proceso de Gestión de Diseño. Adaptación interactiva y traducción autorizada con almacenamiento seguro dual.</p>
             <div class="flex flex-wrap justify-center gap-x-6 gap-y-2 font-medium">
                 <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-[#028090] rounded-full inline-block"></span> Descubrir & Definir (Comprender / Idear)</span>
                 <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-[#0077b6] rounded-full inline-block"></span> Desarrollar & Entregar (Ejecutar)</span>
@@ -686,7 +745,7 @@
                     "El cliente emite una RFP (Solicitud de propuesta de servicios).",
                     "Los diseñadores analizan la RFP y presentan su propuesta económica y de trabajo.",
                     "El cliente acepta la propuesta y confirma al diseñador.",
-                    "El diseñador cobra el depósito inicial de garantía."
+                    "El diseñador solicita un pago de depósito antes de iniciar el proyecto."
                 ]
             },
             {
@@ -697,14 +756,14 @@
                 groupBottom: "Comprender",
                 color: "#028090",
                 tasks: [
-                    "El cliente provee datos históricos, materiales previos y documentos de referencia.",
-                    "El diseñador lidera sesiones de briefing creativo estructurado.",
+                    "El cliente proporciona cualquier información y material de respaldo relevante.",
+                    "El diseñador guía al cliente a través de sesiones de briefing creativo.",
                     "Investigar el ecosistema competitivo del cliente.",
-                    "Mapear detalladamente al público objetivo (Buyer Personas).",
+                    "Mapear detalladamente al público objetivo.",
                     "Ejecutar estudios de mercado si el alcance lo requiere.",
-                    "Realizar observaciones de campo, entrevistas, auditorías o cuestionarios con usuarios.",
-                    "Definir los parámetros funcionales, de ingeniería o limitaciones tecnológicas finales.",
-                    "Consolidar la evaluación de necesidades y redactar el planteamiento final del problema."
+                    "Realizar observaciones, entrevistas, cuestionarios o auditorías con usuarios.",
+                    "Confirmar cualquier parámetro técnico o limitaciones de funcionalidad.",
+                    "Confirmar la evaluación de necesidades y formular el problema de diseño."
                 ]
             },
             {
@@ -715,14 +774,14 @@
                 groupBottom: "Idear",
                 color: "#028090",
                 tasks: [
-                    "Analizar a fondo y sintetizar toda la investigación y datos previos del paso anterior.",
-                    "Establecer la matriz de criterios creativos del proyecto.",
-                    "Definir los requerimientos de usabilidad o criterios funcionales finales.",
-                    "Planificar los canales y medios idóneos de entrega (impreso, web, interactivo).",
-                    "Presentar la síntesis investigativa para comentarios y visto bueno del cliente.",
-                    "Articular y redactar la estrategia formal del diseño creativo.",
-                    "Crear planes preliminares: arquitectura de información, flujos o prototipos rápidos (Wireframes).",
-                    "Obtener la firma y aprobación final de la estrategia por parte del cliente."
+                    "Analizar y sintetizar la investigación y la información recopiladas.",
+                    "Desarrollar los criterios de diseño.",
+                    "Desarrollar los criterios de funcionalidad del producto.",
+                    "Desarrollar el plan de canales de entrega de medios.",
+                    "Presentar todo lo anterior para comentarios o aprobación del cliente.",
+                    "Desarrollar y articular una estrategia clara para el diseño.",
+                    "Desarrollar planes preliminares: arquitectura de información, mapas de paginación y/o wireframes.",
+                    "Presentar todo lo anterior para comentarios o aprobación formal del cliente."
                 ]
             },
             {
@@ -733,14 +792,14 @@
                 groupBottom: "Idear",
                 color: "#028090",
                 tasks: [
-                    "Desarrollar bocetos rápidos, miniaturas conceptuales u opciones estéticas iniciales.",
-                    "Elaborar guiones gráficos (Storyboards) en proyectos dinámicos o interfaces.",
-                    "Diseñar diagramas de flujo interactivos si el proyecto es digital.",
-                    "Crear tableros de inspiración (Moodboards) de color, texturas y tipografía.",
-                    "Definir directrices de Look & Feel iniciales.",
-                    "Presentar maquetas de validación estructural (Pruebas de concepto/POP).",
+                    "Con base en la estrategia aprobada, desarrollar conceptos de diseño preliminares.",
+                    "Bocetos rápidos, miniaturas y esquemas (Roughs).",
+                    "Guiones gráficos (Storyboards) o diagramas de flujo.",
+                    "Crear tableros de inspiración (Moodboards).",
+                    "Definir directrices de propuesta estética (Look & Feel).",
+                    "Modelos de validación estructural o pruebas de concepto (POP).",
                     "Presentación de alternativas conceptuales preliminares al cliente para su validación.",
-                    "Seleccionar en conjunto una o dos ideas principales para un desarrollo robusto."
+                    "Seleccionar en conjunto una o dos ideas principales para desarrollo detallado."
                 ]
             },
             {
@@ -751,14 +810,14 @@
                 groupBottom: "Idear",
                 color: "#0077b6",
                 tasks: [
-                    "Diseñar representaciones altamente precisas del concepto conceptual.",
+                    "Diseñar representaciones de los conceptos de diseño más definidas y precisas.",
                     "Elaborar composiciones completas (Layouts detallados/Comps).",
-                    "Desarrollar animáticas conceptuales o prototipos interactivos iniciales.",
-                    "Presentar maquetaciones de páginas o pliegos típicos (en proyectos editoriales).",
-                    "Integrar textos provisionales optimizados (Copywriting preliminar).",
-                    "Utilizar imágenes de muestra o placeholders funcionales para evaluación de peso visual.",
-                    "Presentar el diseño integral estructurado al cliente para comentarios finales.",
-                    "Recibir confirmación escrita de la dirección de diseño seleccionada para refinamiento final."
+                    "Desarrollar animáticas conceptuales o prototipos preliminares.",
+                    "Presentar maquetaciones de páginas o pliegos típicos (editorial).",
+                    "Integrar textos y mensajes provisionales (placeholders).",
+                    "Utilizar imágenes o audios de muestra funcionales para evaluación.",
+                    "Presentar el diseño estructurado al cliente para comentarios finales.",
+                    "Recibir confirmación escrita de la dirección de diseño seleccionada para refinamiento."
                 ]
             },
             {
@@ -769,13 +828,13 @@
                 groupBottom: "Ejecutar",
                 color: "#0077b6",
                 tasks: [
-                    "Aplicar ajustes específicos solicitados por el cliente sobre el diseño elegido.",
+                    "Aplicar cambios y modificaciones basados específicamente en solicitudes del cliente.",
                     "Pulir elementos estéticos menores (tipografías, espaciado, colores exactos).",
-                    "Realizar pruebas con usuarios finales o validaciones funcionales (Pruebas de Usabilidad).",
-                    "Incorporar correcciones derivadas de las pruebas de usabilidad en el sistema.",
-                    "Iniciar reuniones clave de preproducción con los proveedores del proyecto.",
-                    "Confirmar especificaciones de impresión o troquelado con imprentas/talleres.",
-                    "Coordinar parámetros mecánicos o técnicos con ingenieros, ilustradores o programadores."
+                    "Realizar pruebas de usabilidad o validaciones funcionales.",
+                    "Presentar los refinamientos adicionales al cliente para su aprobación.",
+                    "Iniciar reuniones clave de preprocuración con los proveedores del proyecto.",
+                    "Confirmar especificaciones de impresión o troquelado con imprentas.",
+                    "Coordinar parámetros mecánicos con ingenieros o programadores."
                 ]
             },
             {
@@ -786,11 +845,11 @@
                 groupBottom: "Ejecutar",
                 color: "#0077b6",
                 tasks: [
-                    "Para impresión: Crear artes finales, líneas de corte, originales mecánicos listos para cámaras.",
-                    "Para digital/web: Construcción del modelado 3D, desarrollo de código limpio y pruebas de servidor.",
-                    "Para movimiento/video: Renderizar animaciones finales, masterizar pistas de audio e imagen.",
-                    "Para empaque: Preparar planos estructurales de alta resolución, pruebas de color directo (Pantones).",
-                    "Para espacios/arquitectura: Validar planos mecánicos definitivos y especificaciones de materiales."
+                    "Para impresión: originales mecánicos, líneas de troquel, arte terminado y archivos digitales listos.",
+                    "Para digital/web: diagramas detallados, integración de contenido final, programación y pruebas.",
+                    "Para movimiento/video: creación de elementos, animación, edición, renderizado final y masterización.",
+                    "Para espacios/entorno: especificaciones técnicas, prototipado final, modelos 3D y coordinación.",
+                    "Para empaque: preparación de archivos de alta resolución y prototipado estructural final."
                 ]
             },
             {
@@ -802,10 +861,10 @@
                 color: "#0077b6",
                 tasks: [
                     "Entregar de forma segura todos los archivos técnicos a los proveedores asignados.",
-                    "Supervisar el proceso de preprensa, ajuste de placas y pruebas de pie de máquina.",
-                    "Monitorear el despliegue del código web en servidores productivos o tiendas de aplicaciones.",
-                    "Supervisar y gestionar el cumplimiento de los estándares de calidad del proveedor.",
-                    "Establecer la mesa de ayuda técnica o contratos de mantenimiento continuo posterior al lanzamiento."
+                    "Supervisar el proceso de preprensa, ajuste de placas y pruebas de impresión.",
+                    "Monitorear el despliegue del código web en servidores productivos o en vivo.",
+                    "Supervisar y gestionar activamente el cumplimiento de estándares por parte de terceros.",
+                    "Establecer la mesa de ayuda o contratos de mantenimiento continuo si aplica."
                 ]
             },
             {
@@ -818,7 +877,7 @@
                 tasks: [
                     "Realizar reunión de cierre del proyecto (debriefing/entrevista de salida).",
                     "Analizar las métricas de éxito y fallas detectadas en el transcurso del desarrollo.",
-                    "Archivar sistemáticamente el código, archivos fuente y activos del proyecto en la nube.",
+                    "Archivar sistemáticamente el código, archivos fuente y activos del proyecto.",
                     "Redactar el estudio de caso técnico y creativo para portafolio de autopromoción.",
                     "Enviar la factura de liquidación de honorarios del diseñador.",
                     "Recibir la confirmación del pago final por parte de administración del cliente."
@@ -826,25 +885,41 @@
             }
         ];
 
-        // Detección automática del Entorno
-        const hasFirebase = typeof __firebase_config !== 'undefined';
+        // Claves persistentes
         const LOCAL_STORAGE_KEY = 'gestor_proyectos_diseno_local';
+        const CUSTOM_FIREBASE_KEY = 'gestor_proyectos_custom_firebase_config';
         
+        // Capa defensiva para acceso seguro a LocalStorage (Evita crasheos de seguridad en Sandbox/iFrames)
+        const safeStorage = {
+            getItem(key) {
+                try {
+                    return localStorage.getItem(key);
+                } catch (e) {
+                    console.warn("Storage access blocked by browser security.", e);
+                    return null;
+                }
+            },
+            setItem(key, value) {
+                try {
+                    localStorage.setItem(key, value);
+                } catch (e) {
+                    console.warn("Storage write blocked by browser security.", e);
+                }
+            },
+            removeItem(key) {
+                try {
+                    localStorage.removeItem(key);
+                } catch (e) {
+                    console.warn("Storage removal blocked by browser security.", e);
+                }
+            }
+        };
+
         let db = null;
         let auth = null;
         let appId = 'default-app-id';
-
-        if (hasFirebase) {
-            try {
-                const firebaseConfig = JSON.parse(__firebase_config);
-                const app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-                appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-            } catch (err) {
-                console.error("Fallo al inicializar Firebase. Forzando fallback local:", err);
-            }
-        }
+        let isCloudMode = false;
+        let unsubscribeProjects = null; // DECLARADA CORRECTAMENTE (Arregla bug #1)
 
         // Variables de estado local
         let currentUser = null;
@@ -862,26 +937,7 @@
         const projectsListEl = document.getElementById('projects-list');
         const activeProjectNameEl = document.getElementById('active-project-name');
 
-        // Guardado local seguro
-        function getLocalProjects() {
-            try {
-                const localData = localStorage.getItem(LOCAL_STORAGE_KEY);
-                return localData ? JSON.parse(localData) : [];
-            } catch (e) {
-                console.error("Error leyendo LocalStorage:", e);
-                return [];
-            }
-        }
-
-        function saveLocalProjects(projectsArray) {
-            try {
-                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(projectsArray));
-            } catch (e) {
-                console.error("Error escribiendo en LocalStorage:", e);
-            }
-        }
-
-        // Toasts informativos
+        // Notificaciones Toast
         function showToast(message, type = 'info') {
             toastMessageEl.innerText = message;
             const container = document.getElementById('toast-icon-container');
@@ -891,7 +947,7 @@
             } else if (type === 'error') {
                 container.className = "p-1 rounded-lg bg-rose-500 text-white";
             } else {
-                container.className = "p-1 rounded-lg bg-sky-500 text-white";
+                container.className = "p-1 rounded-lg bg-indigo-500 text-white";
             }
 
             toastEl.classList.remove('opacity-0', 'translate-y-10', 'pointer-events-none');
@@ -900,7 +956,7 @@
             }, 3500);
         }
 
-        // Modal de Confirmación que reemplaza a confirm()
+        // Modal de Confirmación Personalizado (Arregla bug de alerts/confirm nativos que bloquean sandbox)
         function askConfirmation(title, message, onConfirm) {
             const modal = document.getElementById('custom-confirm-modal');
             const titleEl = document.getElementById('confirm-modal-title');
@@ -910,7 +966,6 @@
 
             titleEl.innerText = title;
             messageEl.innerText = message;
-
             modal.classList.remove('hidden');
 
             const closeModal = () => {
@@ -932,13 +987,13 @@
                 cloudStatusBadge.className = "ml-auto lg:ml-4 flex items-center gap-1.5 bg-amber-50 px-3 py-1.5 rounded-full text-[11px] font-bold text-amber-700 border border-amber-200";
             } else if (status === 'synced') {
                 cloudStatusDot.className = "relative inline-flex rounded-full h-2 w-2 bg-emerald-500";
-                cloudStatusText.innerText = "Sincronizado";
+                cloudStatusText.innerText = safeStorage.getItem(CUSTOM_FIREBASE_KEY) ? "Nube Personal" : "Sincronizado";
                 cloudStatusBadge.className = "ml-auto lg:ml-4 flex items-center gap-1.5 bg-emerald-50 px-3 py-1.5 rounded-full text-[11px] font-bold text-emerald-700 border border-emerald-200";
             } else if (status === 'local') {
                 cloudStatusDot.className = "relative inline-flex rounded-full h-2 w-2 bg-blue-500";
                 cloudStatusText.innerText = "Local (GitHub)";
                 cloudStatusBadge.className = "ml-auto lg:ml-4 flex items-center gap-1.5 bg-blue-50 px-3 py-1.5 rounded-full text-[11px] font-bold text-blue-700 border border-blue-200";
-                cloudStatusBadge.title = "Guardando de forma segura en este navegador (localStorage).";
+                cloudStatusBadge.title = "Guardando en este navegador.";
             } else if (status === 'error') {
                 cloudStatusDot.className = "relative inline-flex rounded-full h-2 w-2 bg-rose-500";
                 cloudStatusText.innerText = "Error";
@@ -946,14 +1001,43 @@
             }
         }
 
-        // Configurar arranque seguro
-        async function startApp() {
-            if (hasFirebase && db) {
+        async function initAppStorage() {
+            // Evaluaciones seguras usando el objeto global window (Arregla bug #3)
+            const savedCustomConfig = safeStorage.getItem(CUSTOM_FIREBASE_KEY);
+            const platformConfigExists = typeof window.__firebase_config !== 'undefined';
+
+            let configToUse = null;
+
+            if (savedCustomConfig) {
+                try {
+                    configToUse = JSON.parse(savedCustomConfig);
+                    isCloudMode = true;
+                    appId = 'custom-cloud-user';
+                } catch (e) {
+                    console.error("Fallo al procesar configuración personalizada de Firebase:", e);
+                }
+            } else if (platformConfigExists) {
+                try {
+                    configToUse = JSON.parse(window.__firebase_config);
+                    appId = typeof window.__app_id !== 'undefined' ? window.__app_id : 'default-app-id';
+                    isCloudMode = true;
+                } catch (e) {
+                    console.error("Fallo al procesar configuración de la plataforma:", e);
+                }
+            }
+
+            if (isCloudMode && configToUse) {
                 updateCloudIndicator('syncing');
                 try {
+                    const app = initializeApp(configToUse);
+                    auth = getAuth(app);
+                    db = getFirestore(app);
+                    
+                    // Iniciar login anónimo o token según plataforma
                     let user;
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        const cred = await signInWithCustomToken(auth, __initial_auth_token);
+                    const initialAuthToken = typeof window.__initial_auth_token !== 'undefined' ? window.__initial_auth_token : null;
+                    if (initialAuthToken && !savedCustomConfig) {
+                        const cred = await signInWithCustomToken(auth, initialAuthToken);
                         user = cred.user;
                     } else {
                         const cred = await signInAnonymously(auth);
@@ -962,13 +1046,15 @@
 
                     if (user) {
                         currentUser = user;
-                        // Sincronizar cambios en vivo (Regla 1 y 2)
+                        document.getElementById('collaboration-banner-text').innerHTML = 
+                            "<strong>¡Nube conectada!</strong> Tus datos están sincronizados en tiempo real y puedes acceder desde cualquier dispositivo.";
                         subscribeToProjects();
                     } else {
-                        throw new Error("No auth user returned");
+                        throw new Error("No se pudo autenticar usuario.");
                     }
                 } catch (err) {
-                    console.error("Error autenticando Firebase. Pasando a LocalStorage:", err);
+                    console.error("Fallo al iniciar Firebase. Forzando modo local:", err);
+                    showToast("No se pudo conectar a Firebase. Forzando modo Local.", "error");
                     startLocalStorageMode();
                 }
             } else {
@@ -976,24 +1062,21 @@
             }
         }
 
-        // Activar entorno LocalStorage fuera de nuestra plataforma
+        // Inicialización en modo local
         function startLocalStorageMode() {
-            // Modificar banner visual explicativo
-            const banner = document.getElementById('collaboration-banner');
+            isCloudMode = false;
             const bannerText = document.getElementById('collaboration-banner-text');
-            banner.className = "bg-blue-50 border border-blue-100 p-4 rounded-xl mt-6";
-            bannerText.innerHTML = "<strong>Almacenamiento Local Activo.</strong> Los cambios se guardan automáticamente en tu navegador. Perfecto para mostrar tu portafolio.";
+            bannerText.innerHTML = "<strong>Almacenamiento Local Activo.</strong> Los cambios se guardan automáticamente en tu navegador. Haz clic en el engranaje arriba para conectar tu propia nube gratis.";
 
             updateCloudIndicator('local');
 
-            // Leer base de datos local
             const localList = getLocalProjects();
             
-            // Si está completamente vacía la inicializamos con un ejemplo elegante
+            // Proyecto por defecto
             if (localList.length === 0) {
                 localList.push({
                     id: 'local-demo',
-                    name: 'Proyecto de Marca Corporativa',
+                    name: 'Proyecto de Marca Corporativa (Demo)',
                     createdAt: Date.now(),
                     updatedAt: Date.now(),
                     tasksState: {}
@@ -1009,14 +1092,31 @@
             }
         }
 
-        let unsubscribeProjects = null;
-        function subscribeToProjects() {
-            if (!currentUser) return;
+        // Obtener proyectos de LocalStorage con protección
+        function getLocalProjects() {
+            try {
+                const localData = safeStorage.getItem(LOCAL_STORAGE_KEY);
+                return localData ? JSON.parse(localData) : [];
+            } catch (e) {
+                console.error("Error leyendo LocalStorage:", e);
+                return [];
+            }
+        }
 
-            // Ruta de acceso estricta para persistencia pública compartida (Regla 1)
+        // Guardar proyectos en LocalStorage con protección
+        function saveLocalProjects(projectsArray) {
+            try {
+                safeStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(projectsArray));
+            } catch (e) {
+                console.error("Error escribiendo en LocalStorage:", e);
+            }
+        }
+
+        function subscribeToProjects() {
+            if (!currentUser || !db) return;
+
             const projectsCollection = collection(db, 'artifacts', appId, 'public', 'data', 'projects');
 
-            // Escuchar cambios en vivo de manera óptima (Regla 2: Ordenado localmente en JS)
             unsubscribeProjects = onSnapshot(projectsCollection, (snapshot) => {
                 const fetched = [];
                 snapshot.forEach(doc => {
@@ -1037,7 +1137,6 @@
                     if (!activeProject || !projects.find(p => p.id === activeProject.id)) {
                         selectProject(projects[0].id);
                     } else {
-                        // Sincronizar el proyecto activo sin perder estado de vista del usuario
                         const updated = projects.find(p => p.id === activeProject.id);
                         activeProject = updated;
                         activeProjectNameEl.innerText = activeProject.name;
@@ -1059,7 +1158,7 @@
             }, (error) => {
                 console.error("Error sincronizando cambios:", error);
                 updateCloudIndicator('error');
-                showToast("Fallo de permisos al leer la base de datos.", "error");
+                showToast("Fallo de conexión o permisos con tu base de datos.", "error");
             });
         }
 
@@ -1069,7 +1168,7 @@
             const name = input.value.trim();
             if (!name) return;
 
-            if (hasFirebase && currentUser) {
+            if (isCloudMode && currentUser && db) {
                 updateCloudIndicator('syncing');
                 try {
                     const projectsCollection = collection(db, 'artifacts', appId, 'public', 'data', 'projects');
@@ -1080,14 +1179,13 @@
                         tasksStateJson: JSON.stringify({})
                     });
                     input.value = "";
-                    showToast(`Proyecto "${name}" creado exitosamente`, "success");
+                    showToast(`Proyecto "${name}" sincronizado en la nube`, "success");
                 } catch (err) {
                     console.error("Error guardando proyecto en la nube:", err);
-                    showToast("Error de conexión. Inténtalo de nuevo.", "error");
+                    showToast("Error de conexión. Revisa tus reglas de Firebase.", "error");
                     updateCloudIndicator('error');
                 }
             } else {
-                // Almacenamiento local para GitHub
                 const newProj = {
                     id: 'local-' + Date.now(),
                     name: name,
@@ -1099,7 +1197,7 @@
                 saveLocalProjects(projects);
                 
                 input.value = "";
-                showToast(`Proyecto "${name}" creado de forma local`, "success");
+                showToast(`Proyecto "${name}" creado localmente`, "success");
                 selectProject(newProj.id);
             }
         };
@@ -1112,7 +1210,7 @@
                 `¿Eliminar "${name}"?`,
                 "Esta acción eliminará todos los progresos de este cliente de forma permanente.",
                 async () => {
-                    if (hasFirebase && currentUser) {
+                    if (isCloudMode && currentUser && db) {
                         updateCloudIndicator('syncing');
                         try {
                             const projectDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'projects', id);
@@ -1124,10 +1222,9 @@
                             updateCloudIndicator('error');
                         }
                     } else {
-                        // Flujo local
                         projects = projects.filter(p => p.id !== id);
                         saveLocalProjects(projects);
-                        showToast(`Proyecto "${name}" eliminado de este navegador`, "success");
+                        showToast(`Proyecto "${name}" eliminado localmente`, "success");
                         
                         if (projects.length > 0) {
                             selectProject(projects[0].id);
@@ -1158,7 +1255,6 @@
             }
         };
 
-        // Dibujar clientes en el sidebar
         function renderProjectsList() {
             projectsListEl.innerHTML = "";
 
@@ -1169,7 +1265,7 @@
                         No hay proyectos activos.<br>Crea uno arriba.
                     </div>
                 `;
-                lucide.createIcons();
+                if (window.lucide) window.lucide.createIcons();
                 return;
             }
 
@@ -1181,7 +1277,7 @@
                 let completedTasks = 0;
                 designSteps.forEach(step => {
                     totalTasks += step.tasks.length;
-                    const stepTasks = p.tasksState[step.id] || {};
+                    const stepTasks = p.tasksState ? (p.tasksState[step.id] || {}) : {};
                     completedTasks += Object.values(stepTasks).filter(Boolean).length;
                 });
                 const pct = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
@@ -1208,17 +1304,19 @@
                 `;
                 projectsListEl.appendChild(item);
             });
-            lucide.createIcons();
+            if (window.lucide) window.lucide.createIcons();
         }
 
-        // Guardar estado al marcar un checklist
+        // Guardar estado al marcar un checklist (con validaciones defensivas)
         window.toggleTask = async (stepId, taskIndex, isChecked) => {
             if (!activeProject) {
                 showToast("Crea o selecciona un proyecto antes de marcar tareas.", "error");
                 return;
             }
 
-            // Actualización optimista local
+            if (!activeProject.tasksState) {
+                activeProject.tasksState = {};
+            }
             if (!activeProject.tasksState[stepId]) {
                 activeProject.tasksState[stepId] = {};
             }
@@ -1227,7 +1325,7 @@
             updateChecklistProgressUI();
             updateStepStatusHeader(stepId);
 
-            if (hasFirebase && currentUser) {
+            if (isCloudMode && currentUser && db) {
                 updateCloudIndicator('syncing');
                 try {
                     const projectDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'projects', activeProject.id);
@@ -1242,14 +1340,13 @@
                     updateCloudIndicator('error');
                 }
             } else {
-                // Sincronizar en el arreglo local de memoria
                 const idx = projects.findIndex(p => p.id === activeProject.id);
                 if (idx !== -1) {
                     projects[idx].tasksState = activeProject.tasksState;
                     projects[idx].updatedAt = Date.now();
                     saveLocalProjects(projects);
                 }
-                renderProjectsList(); // Recarga la barra porcentual lateral
+                renderProjectsList();
             }
         };
 
@@ -1261,7 +1358,7 @@
                 `¿Reiniciar todo el progreso?`,
                 `Esta acción limpiará absolutamente todas las casillas marcadas para "${activeProject.name}".`,
                 async () => {
-                    if (hasFirebase && currentUser) {
+                    if (isCloudMode && currentUser && db) {
                         updateCloudIndicator('syncing');
                         try {
                             const projectDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'projects', activeProject.id);
@@ -1275,7 +1372,6 @@
                             updateCloudIndicator('error');
                         }
                     } else {
-                        // Modo local
                         activeProject.tasksState = {};
                         const idx = projects.findIndex(p => p.id === activeProject.id);
                         if (idx !== -1) {
@@ -1293,7 +1389,6 @@
             );
         };
 
-        // Pintar barra de progresión de los selectores laterales del Workflow
         window.renderStepSelectors = () => {
             const container = document.getElementById('step-selector-container');
             container.innerHTML = "";
@@ -1367,12 +1462,12 @@
         };
 
         function isTaskCompleted(stepId, index) {
-            if (!activeProject || !activeProject.tasksState[stepId]) return false;
+            if (!activeProject || !activeProject.tasksState || !activeProject.tasksState[stepId]) return false;
             return activeProject.tasksState[stepId][index] === true;
         }
 
         function getCompletedTasksCount(stepId) {
-            if (!activeProject || !activeProject.tasksState[stepId]) return 0;
+            if (!activeProject || !activeProject.tasksState || !activeProject.tasksState[stepId]) return 0;
             return Object.values(activeProject.tasksState[stepId]).filter(Boolean).length;
         }
 
@@ -1444,6 +1539,7 @@
         // Configuración de búsqueda inteligente sobre la matriz
         function setupSearch() {
             const input = document.getElementById('searchInput');
+            if (!input) return;
             input.addEventListener('input', function(e) {
                 const query = e.target.value.toLowerCase().trim();
                 const stepCards = document.querySelectorAll('.step-card');
@@ -1471,6 +1567,49 @@
             });
         }
 
+        // Abrir y cerrar modal de Ajustes de Nube
+        window.toggleCloudModal = (isOpen) => {
+            const modal = document.getElementById('cloud-config-modal');
+            if (isOpen) {
+                const saved = safeStorage.getItem(CUSTOM_FIREBASE_KEY);
+                document.getElementById('firebaseConfigInput').value = saved ? saved : '';
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        };
+
+        // Guardar configuración de Firebase Personal
+        window.saveCustomCloudConfig = () => {
+            const value = document.getElementById('firebaseConfigInput').value.trim();
+            if (!value) {
+                showToast("Por favor ingresa un JSON válido", "error");
+                return;
+            }
+
+            try {
+                JSON.parse(value);
+                safeStorage.setItem(CUSTOM_FIREBASE_KEY, value);
+                toggleCloudModal(false);
+                showToast("Configuración guardada. Recargando para conectar...", "success");
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1200);
+            } catch (e) {
+                showToast("El texto no es un objeto JSON válido.", "error");
+            }
+        };
+
+        // Borrar configuración y volver a local
+        window.clearCustomCloudConfig = () => {
+            safeStorage.removeItem(CUSTOM_FIREBASE_KEY);
+            toggleCloudModal(false);
+            showToast("Nube desconectada. Recargando a Modo Local...", "info");
+            setTimeout(() => {
+                window.location.reload();
+            }, 1200);
+        };
+
         // Control móvil de apertura/cierre de barra de navegación lateral
         window.toggleSidebar = () => {
             const sidebar = document.getElementById('project-sidebar');
@@ -1479,10 +1618,9 @@
             overlay.classList.toggle('hidden');
         };
 
-        // Ejecutar al cargar la ventana
         window.onload = function() {
-            lucide.createIcons();
-            startApp();
+            if (window.lucide) window.lucide.createIcons();
+            initAppStorage();
             setupSearch();
         };
 
