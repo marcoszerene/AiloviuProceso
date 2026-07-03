@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Proyectos de Diseño Colaborativo</title>
+    <!-- Tailwind CSS para diseño fluido y premium -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts para tipografía editorial limpia -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <!-- Lucide Icons para componentes visuales -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Fondo slate ultra limpio */
+        }
+        .serif-title {
+            font-family: 'Playfair Display', serif;
+        }
+        /* Personalización de barra de desplazamiento para la vista horizontal */
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col antialiased">
+
+    <!-- Notificación Toast Personalizada (Reemplaza a los alerts nativos) -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-10 opacity-0 pointer-events-none transition-all duration-300 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-slate-800 max-w-sm">
+        <div id="toast-icon-container" class="p-1 rounded-lg bg-[#96c11f] text-slate-950">
+            <i data-lucide="cloud-lightning" class="w-4 h-4"></i>
+        </div>
+        <div class="flex-1">
+            <p id="toast-message" class="text-xs font-semibold">Cargando la aplicación...</p>
+        </div>
+    </div>
+
+    <!-- Encabezado Principal -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 px-4 md:px-6 py-4 shadow-sm">
+        <div class="max-w-[1700px] mx-auto flex flex-col lg:flex-row justify-between items-center gap-4">
+            
+            <div class="flex items-center gap-4 w-full lg:w-auto">
+                <!-- Botón móvil para abrir lista de proyectos -->
+                <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+                <div>
+                    <span class="text-xs font-semibold tracking-wider text-[#028090] uppercase block flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-[#028090]"></span> Metodología de Diseño Compartida
+                    </span>
+                    <h1 class="text-xl md:text-2xl font-extrabold tracking-tight text-slate-900 flex items-center gap-2">
+                        <i data-lucide="map" class="text-[#028090] w-6 h-6"></i>
+                        Tablero de Proyectos
+                    </h1>
+                </div>
+                <!-- Indicador de Sincronización en la Nube -->
+                <div class="ml-auto lg:ml-4 flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full text-[11px] font-bold text-slate-600" id="cloud-status-badge">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500" id="cloud-status-dot"></span>
+                    </span>
+                    <span id="cloud-status-text">Conectando...</span>
+                </div>
+            </div>
+            
+            <!-- Controles Superiores -->
+            <div class="flex flex-wrap items-center justify-end gap-3 w-full lg:w-auto">
+                <!-- Buscador rápido -->
+                <div class="relative w-full md:w-auto">
+                    <i data-lucide="search" class="absolute left-3 top-2.5 text-slate-400 w-4 h-4"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar concepto (ej: RFP, wireframes)..." 
+                           class="pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#028090] w-full md:w-64 bg-slate-50 transition-all">
+                </div>
+
+                <!-- Selector de Vistas -->
+                <div class="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1 w-full md:w-auto justify-center">
+                    <button onclick="switchView('chart')" id="btn-view-chart" class="flex-1 md:flex-initial px-3 py-1.5 rounded-md text-xs font-semibold bg-white text-slate-900 shadow-sm transition-all flex items-center justify-center gap-1.5">
+                        <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> Vista General 9 Pasos
+                    </button>
+                    <button onclick="switchView('interactive')" id="btn-view-interactive" class="flex-1 md:flex-initial px-3 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center gap-1.5">
+                        <i data-lucide="check-square" class="w-3.5 h-3.5"></i> Lista Interactiva
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Barra de progreso colaborativa -->
+    <div id="progress-bar-container" class="bg-[#eef5f6] border-b border-slate-200 py-2.5 px-4 md:px-6 transition-all">
+        <div class="max-w-[1700px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+                <i data-lucide="users" class="text-[#028090] w-4 h-4"></i>
+                <span class="text-xs font-bold text-[#028090] uppercase tracking-wider">Espacio de Trabajo Compartido:</span>
+                <span id="active-project-name" class="text-sm font-extrabold text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-xs">Cargando proyecto...</span>
+            </div>
+            
+            <div class="flex items-center gap-4 w-full sm:w-auto justify-end">
+                <div class="flex items-center gap-2 flex-1 sm:flex-initial">
+                    <span id="progress-percent" class="text-xs font-extrabold text-slate-700 min-w-[28px] text-right">0%</span>
+                    <div class="w-32 md:w-48 bg-slate-200 rounded-full h-2 overflow-hidden">
+                        <div id="progress-fill" class="bg-[#028090] h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+                <button onclick="resetActiveProjectChecklist()" class="text-xs text-red-600 hover:text-red-800 font-bold flex items-center gap-1 transition-colors">
+                    <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Reiniciar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor Principal con Distribución de Panel Lateral -->
+    <div class="flex-grow flex flex-col lg:flex-row max-w-[1750px] w-full mx-auto p-4 md:p-6 gap-6">
+        
+        <!-- SIDEBAR DE GESTIÓN DE PROYECTOS (Panel Izquierdo) -->
+        <aside id="project-sidebar" class="fixed inset-y-0 left-0 z-50 w-80 bg-white border-r border-slate-200 p-5 transform -translate-x-full transition-transform duration-300 lg:relative lg:transform-none lg:z-0 lg:w-72 lg:p-0 lg:bg-transparent lg:border-r-0 flex flex-col justify-between shrink-0">
+            <div class="space-y-6">
+                <!-- Título Panel -->
+                <div class="flex items-center justify-between border-b border-slate-200 pb-3 lg:border-b-0 lg:pb-0">
+                    <h2 class="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+                        <i data-lucide="folder-open" class="w-4 h-4 text-slate-400"></i> Proyectos Activos
+                    </h2>
+                    <button onclick="toggleSidebar()" class="lg:hidden p-1.5 rounded-lg hover:bg-slate-100 text-slate-500">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <!-- Botón de Añadir Nuevo Proyecto -->
+                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-3">
+                    <p class="text-[11px] text-slate-500 leading-normal">Agrega un nuevo cliente o proyecto para empezar a mapear juntos.</p>
+                    <div class="flex gap-2">
+                        <input type="text" id="newProjectName" placeholder="Nombre del proyecto..." 
+                               class="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:outline-none focus:ring-1 focus:ring-[#028090]">
+                        <button onclick="createNewProject()" class="bg-[#028090] text-white p-2 rounded-lg hover:bg-[#016875] transition-colors flex items-center justify-center">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Lista de Proyectos Dinámicos -->
+                <div id="projects-list" class="space-y-2 max-h-[350px] lg:max-h-[500px] overflow-y-auto custom-scrollbar pr-1">
+                    <div class="text-center py-6 text-slate-400 text-xs">
+                        <i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-2 text-[#028090]"></i>
+                        Cargando base de datos...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Banner Informativo de Colaboración -->
+            <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-xl mt-6">
+                <div class="flex gap-2 items-start">
+                    <i data-lucide="sparkles" class="text-indigo-600 w-4 h-4 shrink-0 mt-0.5 animate-pulse"></i>
+                    <p class="text-[11px] text-indigo-900 leading-relaxed font-medium">
+                        <strong>¡Socio conectado!</strong> Ambos pueden editar en vivo. Los cambios se sincronizan al instante en la computadora del otro.
+                    </p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Fondo opaco para cerrar menú móvil al tocar fuera -->
+        <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 hidden lg:hidden"></div>
+
+        <!-- AREA DE TRABAJO (Panel Derecho/Centro) -->
+        <div class="flex-1 flex flex-col min-w-0">
+            
+            <!-- VISTA DE DIAGRAMA COMPLETO (9 Columnas) -->
+            <div id="view-chart" class="transition-opacity duration-300">
+                <div class="overflow-x-auto pb-6 custom-scrollbar bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-xs">
+                    <div class="min-w-[1450px] px-2">
+                        
+                        <!-- 1. SOPORTES Y BRACKETS SUPERIORES (Fases del Cliente/Diseñador) -->
+                        <div class="grid grid-cols-9 gap-4 mb-3 text-center">
+                            
+                            <!-- Fase: Descubrir (Pasos 1-2) -->
+                            <div class="col-span-2 relative">
+                                <div class="text-[#028090] text-xs font-extrabold tracking-widest uppercase py-1 border-t-2 border-x-2 border-[#028090] rounded-t-md mx-4">
+                                    Descubrir
+                                </div>
+                            </div>
+
+                            <!-- Fase: Definir (Pasos 3-4) -->
+                            <div class="col-span-2 relative">
+                                <div class="text-[#028090] text-xs font-extrabold tracking-widest uppercase py-1 border-t-2 border-x-2 border-[#028090] rounded-t-md mx-4">
+                                    Definir
+                                </div>
+                            </div>
+
+                            <!-- Fase: Desarrollar (Pasos 5-6) -->
+                            <div class="col-span-2 relative">
+                                <div class="text-[#0077b6] text-xs font-extrabold tracking-widest uppercase py-1 border-t-2 border-x-2 border-[#0077b6] rounded-t-md mx-4">
+                                    Desarrollar
+                                </div>
+                            </div>
+
+                            <!-- Fase: Entregar (Pasos 7-8) -->
+                            <div class="col-span-2 relative">
+                                <div class="text-[#0077b6] text-xs font-extrabold tracking-widest uppercase py-1 border-t-2 border-x-2 border-[#0077b6] rounded-t-md mx-4">
+                                    Entregar
+                                </div>
+                            </div>
+
+                            <!-- Paso 9 (Sin bracket superior, cierre) -->
+                            <div class="col-span-1"></div>
+                        </div>
+
+                        <!-- 2. NÚMEROS DE PASOS (Círculos) -->
+                        <div class="grid grid-cols-9 gap-4 mb-4">
+                            <div class="flex justify-center"><div class="w-14 h-14 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center font-bold text-2xl shadow-md">1</div></div>
+                            <div class="flex justify-center"><div class="w-14 h-14 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center font-bold text-2xl shadow-md">2</div></div>
+                            <div class="flex justify-center"><div class="w-14 h-14 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center font-bold text-2xl shadow-md">3</div></div>
+                            <div class="flex justify-center"><div class="w-14 h-14 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center font-bold text-2xl shadow-md">4</div></div>
+                            <div class="flex justify-center"><div class="w-14 h-14 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center font-bold text-2xl shadow-md">5</div></div>
+                            <div class="flex justify-center"><div class="w-14 h-14 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center font-bold text-2xl shadow-md">6</div></div>
+                            <div class="flex justify-center"><div class="w-14 h-14 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center font-bold text-2xl shadow-md">7</div></div>
+                            <div class="flex justify-center"><div class="w-14 h-14 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center font-bold text-2xl shadow-md">8</div></div>
+                            <div class="flex justify-center"><div class="w-14 h-14 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center font-bold text-2xl shadow-md">9</div></div>
+                        </div>
+
+                        <!-- TÍTULOS DE FASE AZULES -->
+                        <div class="grid grid-cols-9 gap-4 mb-6">
+                            <div class="px-2 text-center">
+                                <span class="block bg-sky-100 text-[#0077b6] text-[10px] font-extrabold py-1.5 px-2 rounded uppercase tracking-wider leading-relaxed">
+                                    Inicio del<br>Proyecto
+                                </span>
+                            </div>
+                            <div class="px-2 text-center">
+                                <span class="block bg-sky-100 text-[#0077b6] text-[10px] font-extrabold py-1.5 px-2 rounded uppercase tracking-wider leading-relaxed">
+                                    Orientación/<br>Investigación
+                                </span>
+                            </div>
+                            <div class="px-2 text-center">
+                                <span class="block bg-sky-100 text-[#0077b6] text-[10px] font-extrabold py-1.5 px-2 rounded uppercase tracking-wider leading-relaxed">
+                                    Estrategia
+                                </span>
+                            </div>
+                            <div class="px-2 text-center">
+                                <span class="block bg-sky-100 text-[#0077b6] text-[10px] font-extrabold py-1.5 px-2 rounded uppercase tracking-wider leading-relaxed">
+                                    Exploración
+                                </span>
+                            </div>
+                            <div class="px-2 text-center">
+                                <span class="block bg-sky-100 text-[#0077b6] text-[10px] font-extrabold py-1.5 px-2 rounded uppercase tracking-wider leading-relaxed">
+                                    Desarrollo
+                                </span>
+                            </div>
+                            <div class="px-2 text-center">
+                                <span class="block bg-sky-100 text-[#0077b6] text-[10px] font-extrabold py-1.5 px-2 rounded uppercase tracking-wider leading-relaxed">
+                                    Refinamiento
+                                </span>
+                            </div>
+                            <div class="px-2 text-center">
+                                <span class="block bg-sky-100 text-[#0077b6] text-[10px] font-extrabold py-1.5 px-2 rounded uppercase tracking-wider leading-relaxed">
+                                    Producción
+                                </span>
+                            </div>
+                            <div class="px-2 text-center">
+                                <span class="block bg-sky-100 text-[#0077b6] text-[10px] font-extrabold py-1.5 px-2 rounded uppercase tracking-wider leading-relaxed">
+                                    Manufactura/<br>Lanzamiento
+                                </span>
+                            </div>
+                            <div class="px-2 text-center">
+                                <span class="block bg-sky-100 text-[#0077b6] text-[10px] font-extrabold py-1.5 px-2 rounded uppercase tracking-wider leading-relaxed">
+                                    Cierre del<br>Proyecto
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- 3. CUERPO DE DATOS (Columnas de texto) -->
+                        <div class="grid grid-cols-9 gap-4 items-start border-r border-l border-slate-200">
+                            
+                            <!-- Columna 1 -->
+                            <div class="p-3 text-[11px] text-slate-700 leading-relaxed space-y-2.5 border-r border-slate-200 h-full step-card" data-step="1">
+                                <ul class="list-disc pl-4 space-y-2">
+                                    <li>El cliente identifica una necesidad o meta general.</li>
+                                    <li>El cliente desarrolla un presupuesto preliminar del proyecto.</li>
+                                    <li>El cliente desarrolla un cronograma o plazos preliminares.</li>
+                                    <li>Si es posible, el cliente crea un informe creativo o <strong>brief preliminar</strong>.</li>
+                                    <li>El cliente identifica diseñadores o estudios potenciales y los contacta.</li>
+                                    <li>El cliente y el diseñador se reúnen para una discusión preliminar y revisión de portafolio.</li>
+                                    <li>El cliente crea y envía una <strong>RFP</strong> (solicitud de propuestas).</li>
+                                    <li>Los diseñadores responden y presentan su propuesta de servicios de diseño.</li>
+                                    <li>El cliente acepta la propuesta formal y confirma al diseñador seleccionado.</li>
+                                    <li>El diseñador generalmente solicita un pago de depósito antes de iniciar el proyecto.</li>
+                                </ul>
+                            </div>
+
+                            <!-- Columna 2 -->
+                            <div class="p-3 text-[11px] text-slate-700 leading-relaxed space-y-2.5 border-r border-slate-200 h-full step-card" data-step="2">
+                                <ul class="list-disc pl-4 space-y-2">
+                                    <li>El cliente proporciona cualquier información y material de respaldo relevante.</li>
+                                    <li>El diseñador guía al cliente a través de sesiones de <strong>briefing creativo</strong>.</li>
+                                    <li>El cliente y el diseñador comienzan la investigación necesaria sobre:
+                                        <ul class="list-none pl-3 italic text-slate-500 my-1 space-y-0.5">
+                                            <li>— Panorama competitivo</li>
+                                            <li>— Público objetivo</li>
+                                            <li>— Investigación de mercado</li>
+                                        </ul>
+                                    </li>
+                                    <li>Utilizando alguno o todos los siguientes métodos:
+                                        <ul class="list-none pl-3 italic text-slate-500 my-1 space-y-0.5">
+                                            <li>— Observación directa</li>
+                                            <li>— Entrevistas</li>
+                                            <li>— Cuestionarios</li>
+                                            <li>— Auditorías previas</li>
+                                        </ul>
+                                    </li>
+                                    <li>El cliente y el diseñador confirman cualquier parámetro técnico o de funcionalidad.</li>
+                                    <li>El cliente y el diseñador confirman la evaluación de necesidades y comienzan la formulación del problema de diseño.</li>
+                                </ul>
+                            </div>
+
+                            <!-- Columna 3 -->
+                            <div class="p-3 text-[11px] text-slate-700 leading-relaxed space-y-2.5 border-r border-slate-200 h-full step-card" data-step="3">
+                                <ul class="list-disc pl-4 space-y-2">
+                                    <li>El diseñador analiza y sintetiza la investigación y la información recopiladas.</li>
+                                    <li>El diseñador desarrolla los criterios de diseño.</li>
+                                    <li>El diseñador desarrolla los criterios de funcionalidad del producto.</li>
+                                    <li>El diseñador desarrolla el plan de canales de entrega de medios.</li>
+                                    <li>El diseñador presenta todo lo anterior para aportes o aprobación del cliente.</li>
+                                    <li>El diseñador desarrolla y articula una estrategia clara para el diseño.</li>
+                                    <li>El diseñador desarrolla planes preliminares: arquitectura de información, mapas de paginación y/o <strong>wireframes</strong> (si corresponde).</li>
+                                    <li>El diseñador presenta todo lo anterior para comentarios o aprobación formal del cliente.</li>
+                                </ul>
+                            </div>
+
+                            <!-- Columna 4 -->
+                            <div class="p-3 text-[11px] text-slate-700 leading-relaxed space-y-2.5 border-r border-slate-200 h-full step-card" data-step="4">
+                                <ul class="list-disc pl-4 space-y-2">
+                                    <li>Con base en la estrategia aprobada por el cliente, el diseñador desarrolla conceptos de diseño preliminares.</li>
+                                    <li>La ideación del diseñador puede tomar las siguientes formas físicas:
+                                        <ul class="list-none pl-3 italic text-slate-500 my-1 space-y-0.5">
+                                            <li>— Bocetos, miniaturas y esquemas (Roughs)</li>
+                                            <li>— Guiones gráficos (Storyboards)</li>
+                                            <li>— Diagramas de flujo</li>
+                                            <li>— Tableros de inspiración (Moodboards)</li>
+                                            <li>— Propuestas estéticas (Look & feel)</li>
+                                            <li>— Pruebas de concepto o modelos de validación (POP)</li>
+                                        </ul>
+                                    </li>
+                                    <li>El diseñador presenta lo anterior al cliente para discusión, comentarios y aprobación.</li>
+                                    <li>El cliente proporciona comentarios y validación inicial de que la dirección del concepto cumplirá con las metas y objetivos del proyecto.</li>
+                                    <li>Por lo general, el diseñador creará varios conceptos alternativos que se reducirán a solo un par de ideas conceptuales para un desarrollo más detallado.</li>
+                                </ul>
+                            </div>
+
+                            <!-- Columna 5 -->
+                            <div class="p-3 text-[11px] text-slate-700 leading-relaxed space-y-2.5 border-r border-slate-200 h-full step-card" data-step="5">
+                                <ul class="list-disc pl-4 space-y-2">
+                                    <li>Con base en las ideas conceptuales aprobadas por el cliente, el diseñador desarrolla más a fondo los conceptos de diseño.</li>
+                                    <li>Estas iteraciones adicionales de los conceptos se presentarán como representaciones más precisas y definidas del diseño final:
+                                        <ul class="list-none pl-3 italic text-slate-500 my-1 space-y-0.5">
+                                            <li>— Diseños detallados (Comps/Layouts)</li>
+                                            <li>— Animáticas de concepto</li>
+                                            <li>— Páginas típicas o pliegos editoriales</li>
+                                            <li>— Prototipos preliminares</li>
+                                        </ul>
+                                    </li>
+                                    <li>Estos incorporarán elementos preliminares, a menudo provisionales (placeholders), de:
+                                        <ul class="list-none pl-3 italic text-slate-500 my-1 space-y-0.5">
+                                            <li>— Texto y mensajes principales</li>
+                                            <li>— Imágenes o fotografía</li>
+                                            <li>— Animación y movimiento</li>
+                                            <li>— Audio</li>
+                                        </ul>
+                                    </li>
+                                    <li>El diseñador presenta lo anterior al cliente para discusión, comentarios y aprobación formal.</li>
+                                    <li>El cliente proporciona comentarios y validación de que la dirección del diseño cumplirá con las metas y objetivos del proyecto.</li>
+                                    <li>Por lo general, el cliente aprobará una dirección de diseño específica que luego será refinada por el diseñador.</li>
+                                </ul>
+                            </div>
+
+                            <!-- Columna 6 -->
+                            <div class="p-3 text-[11px] text-slate-700 leading-relaxed space-y-2.5 border-r border-slate-200 h-full step-card" data-step="6">
+                                <ul class="list-disc pl-4 space-y-2">
+                                    <li>Con una dirección de diseño aprobada, el diseñador refina aún más los detalles del diseño.</li>
+                                    <li>Por lo general, los cambios y modificaciones son:
+                                        <ul class="list-none pl-3 italic text-slate-500 my-1 space-y-0.5">
+                                            <li>— Basados específicamente en solicitudes del cliente</li>
+                                            <li>— De carácter menor</li>
+                                            <li>— Ajustes detallados de los elementos estéticos</li>
+                                        </ul>
+                                    </li>
+                                    <li>El diseñador presenta lo anterior al cliente para discusión, aportaciones y aprobación final.</li>
+                                    <li>Se pueden realizar pruebas del diseño, lo que puede llevar a otra ronda de refinamientos. Las pruebas pueden incluir:
+                                        <ul class="list-none pl-3 italic text-slate-500 my-1 space-y-0.5">
+                                            <li>— Validación del cliente</li>
+                                            <li>— Pruebas de usabilidad</li>
+                                            <li>— Presentación de refinamientos adicionales al cliente para su aprobación</li>
+                                        </ul>
+                                    </li>
+                                    <li>El diseñador inicia reuniones de preproducción con miembros adicionales del equipo técnico si es necesario:
+                                        <ul class="list-none pl-3 italic text-slate-500 my-1 space-y-0.5">
+                                            <li>— Impresores / Talleres de troquelado</li>
+                                            <li>— Manufacturero</li>
+                                            <li>— Fotógrafo / Ilustradores</li>
+                                            <li>— Ingenieros de audio o programadores</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <!-- Columna 7 -->
+                            <div class="p-3 text-[11px] text-slate-700 leading-relaxed space-y-2.5 border-r border-slate-200 h-full step-card" data-step="7">
+                                <ul class="list-disc pl-4 space-y-2">
+                                    <li>Con el diseño final aprobado, el diseñador comienza la implementación en todos los entregables requeridos. Esto puede incluir:
+                                        <p class="my-1"><strong>Impresión:</strong> originales mecánicos, líneas de troquel, arte terminado, archivos digitales optimizados, arte listo para cámara, todos los elementos finales.</p>
+                                        <p class="my-1"><strong>Web:</strong> fase de modelado, diagrama de flujo detallado, integración de contenido final, arte de páginas y elementos gráficos, programación y pruebas de código.</p>
+                                        <p class="my-1"><strong>Movimiento/Video:</strong> creación de todos los elementos del proyecto, animación, filmación de acción real, edición de video, renderizado final y masterización.</p>
+                                        <p class="my-1"><strong>Espacios/Entorno:</strong> especificaciones técnicas, prototipado final, modelos digitales en 3D, pruebas de producción, coordinación y gestión técnica de obra.</p>
+                                        <p class="my-1"><strong>Empaque:</strong> preparación de archivos de alta resolución según especificaciones técnicas, corrección de color y prototipado estructural.</p>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <!-- Columna 8 -->
+                            <div class="p-3 text-[11px] text-slate-700 leading-relaxed space-y-2.5 border-r border-slate-200 h-full step-card" data-step="8">
+                                <ul class="list-disc pl-4 space-y-2">
+                                    <li>Dependiendo del proyecto y el medio de entrega, los materiales de producción son entregados por el diseñador a terceros. Aunque otros profesionales externos realizan el trabajo en la mayoría de los casos, el diseñador debe supervisar a estos proveedores:
+                                        <ul class="list-none pl-3 italic text-slate-500 my-1 space-y-0.5">
+                                            <li>— Preprensa / Separador de color / Imprenta</li>
+                                            <li>— Fabricante / Productor</li>
+                                            <li>— Ingeniero / Programador</li>
+                                            <li>— Medio de comunicación / Canal de difusión</li>
+                                            <li>— Emisión al aire (Broadcast)</li>
+                                            <li>— Lanzado en Web / En vivo</li>
+                                        </ul>
+                                    </li>
+                                    <li>El diseñador puede participar activamente en la supervisión o gestión de cualquiera o todos los proveedores anteriores, o bien esto puede ser responsabilidad directa del cliente.</li>
+                                    <li>El mantenimiento continuo, especialmente en el caso del diseño web, puede ser un aspecto integrado del proyecto, o se determinará mediante un acuerdo separado.</li>
+                                </ul>
+                            </div>
+
+                            <!-- Columna 9 -->
+                            <div class="p-3 text-[11px] text-slate-700 leading-relaxed space-y-2.5 h-full step-card" data-step="9">
+                                <ul class="list-disc pl-4 space-y-2">
+                                    <li>El diseñador y el cliente realizan una sesión informativa de cierre (reunión de evaluación o debriefing) para revisar:
+                                        <ul class="list-none pl-3 italic text-slate-500 my-1 space-y-0.5">
+                                            <li>— Procedimientos ejecutados</li>
+                                            <li>— Resultados del proyecto: éxito o fracaso</li>
+                                            <li>— Circuitos de retroalimentación</li>
+                                            <li>— Oportunidades adicionales</li>
+                                        </ul>
+                                    </li>
+                                    <li>El diseñador archiva ordenadamente todos los archivos del proyecto. También redacta un estudio de caso mientras los detalles están frescos como herramienta de autopromoción futura.</li>
+                                    <li>El diseñador realiza la liquidación de cuentas y envía la factura final del proyecto.</li>
+                                    <li>El cliente efectúa el pago final al diseñador.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- 4. METAS DE CADA FASE (Bloque Verde Inferior) -->
+                        <div class="grid grid-cols-9 gap-4 mt-4">
+                            <!-- Goal 1 -->
+                            <div class="bg-[#96c11f] text-slate-950 p-3 rounded-md shadow-xs text-center">
+                                <p class="text-[10px] uppercase tracking-wider font-extrabold opacity-80">Meta de esta fase:</p>
+                                <ul class="text-[11px] font-bold mt-1.5 space-y-0.5">
+                                    <li>• Establecer parámetros básicos</li>
+                                    <li>• Selección del diseñador</li>
+                                </ul>
+                            </div>
+                            <!-- Goal 2 -->
+                            <div class="bg-[#96c11f] text-slate-950 p-3 rounded-md shadow-xs text-center">
+                                <p class="text-[10px] uppercase tracking-wider font-extrabold opacity-80">Meta de esta fase:</p>
+                                <ul class="text-[11px] font-bold mt-1.5 space-y-0.5">
+                                    <li>• Clarificar objetivos</li>
+                                    <li>• Oportunidades base</li>
+                                </ul>
+                            </div>
+                            <!-- Goal 3 -->
+                            <div class="bg-[#96c11f] text-slate-950 p-3 rounded-md shadow-xs text-center">
+                                <p class="text-[10px] uppercase tracking-wider font-extrabold opacity-80">Meta de esta fase:</p>
+                                <ul class="text-[11px] font-bold mt-1.5 space-y-0.5">
+                                    <li>• Diseñar estrategia general</li>
+                                    <li>• Entregables clave</li>
+                                </ul>
+                            </div>
+                            <!-- Goal 4 -->
+                            <div class="bg-[#96c11f] text-slate-950 p-3 rounded-md shadow-xs text-center">
+                                <p class="text-[10px] uppercase tracking-wider font-extrabold opacity-80">Meta de esta fase:</p>
+                                <ul class="text-[11px] font-bold mt-1.5 space-y-0.5">
+                                    <li>• Generar ideas previas</li>
+                                    <li>• Evaluar conceptos</li>
+                                </ul>
+                            </div>
+                            <!-- Goal 5 -->
+                            <div class="bg-[#96c11f] text-slate-950 p-3 rounded-md shadow-xs text-center">
+                                <p class="text-[10px] uppercase tracking-wider font-extrabold opacity-80">Meta de esta fase:</p>
+                                <ul class="text-[11px] font-bold mt-1.5 space-y-0.5">
+                                    <li>• Madurar las ideas</li>
+                                    <li>• Seleccionar dirección</li>
+                                </ul>
+                            </div>
+                            <!-- Goal 6 -->
+                            <div class="bg-[#96c11f] text-slate-950 p-3 rounded-md shadow-xs text-center">
+                                <p class="text-[10px] uppercase tracking-wider font-extrabold opacity-80">Meta de esta fase:</p>
+                                <ul class="text-[11px] font-bold mt-1.5 space-y-0.5">
+                                    <li>• Diseño final aprobado</li>
+                                </ul>
+                            </div>
+                            <!-- Goal 7 -->
+                            <div class="bg-[#96c11f] text-slate-950 p-3 rounded-md shadow-xs text-center">
+                                <p class="text-[10px] uppercase tracking-wider font-extrabold opacity-80">Meta de esta fase:</p>
+                                <ul class="text-[11px] font-bold mt-1.5 space-y-0.5">
+                                    <li>• Producción final</li>
+                                    <li>• Liberar materiales</li>
+                                </ul>
+                            </div>
+                            <!-- Goal 8 -->
+                            <div class="bg-[#96c11f] text-slate-950 p-3 rounded-md shadow-xs text-center">
+                                <p class="text-[10px] uppercase tracking-wider font-extrabold opacity-80">Meta de esta fase:</p>
+                                <ul class="text-[11px] font-bold mt-1.5 space-y-0.5">
+                                    <li>• Materiales en uso</li>
+                                </ul>
+                            </div>
+                            <!-- Goal 9 -->
+                            <div class="bg-[#96c11f] text-slate-950 p-3 rounded-md shadow-xs text-center">
+                                <p class="text-[10px] uppercase tracking-wider font-extrabold opacity-80">Meta de esta fase:</p>
+                                <ul class="text-[11px] font-bold mt-1.5 space-y-0.5">
+                                    <li>• Relación a largo plazo</li>
+                                    <li>• Nuevas ventas</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- 5. AGRUPACIONES DEL FLUJO EN EL PIE DE PÁGINA (Comprensión, Ideación, Ejecución) -->
+                        <div class="grid grid-cols-9 gap-4 mt-6 items-center">
+                            <!-- Comprender (Pasos 1-2) -->
+                            <div class="col-span-2 relative">
+                                <div class="flex items-center justify-between px-4 border-b-2 border-slate-700 pb-1.5 mx-2">
+                                    <i data-lucide="arrow-left" class="w-4 h-4 text-slate-700"></i>
+                                    <span class="text-xs font-bold uppercase tracking-widest text-slate-700">Comprender</span>
+                                    <i data-lucide="arrow-right" class="w-4 h-4 text-slate-700"></i>
+                                </div>
+                            </div>
+
+                            <!-- Idear (Pasos 3-5) -->
+                            <div class="col-span-3 relative">
+                                <div class="flex items-center justify-between px-4 border-b-2 border-slate-700 pb-1.5 mx-2">
+                                    <i data-lucide="arrow-left" class="w-4 h-4 text-slate-700"></i>
+                                    <span class="text-xs font-bold uppercase tracking-widest text-slate-700">Idear</span>
+                                    <i data-lucide="arrow-right" class="w-4 h-4 text-slate-700"></i>
+                                </div>
+                            </div>
+
+                            <!-- Ejecutar (Pasos 6-9) -->
+                            <div class="col-span-4 relative">
+                                <div class="flex items-center justify-between px-4 border-b-2 border-slate-700 pb-1.5 mx-2">
+                                    <i data-lucide="arrow-left" class="w-4 h-4 text-slate-700"></i>
+                                    <span class="text-xs font-bold uppercase tracking-widest text-slate-700">Ejecutar</span>
+                                    <i data-lucide="arrow-right" class="w-4 h-4 text-slate-700"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                
+                <!-- Mensaje flotante de interacción -->
+                <div class="text-center mt-4 text-xs text-slate-400 italic">
+                    💡 Consejo: Desplázate horizontalmente para ver las fases secuenciales del proceso.
+                </div>
+            </div>
+
+            <!-- VISTA INTERACTIVA (WORKFLOW / CHECKLIST) -->
+            <div id="view-interactive" class="hidden transition-opacity duration-300">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    
+                    <!-- Navegador de Pasos Izquierda -->
+                    <div class="lg:col-span-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Pasos de la Metodología</h3>
+                        <div id="step-selector-container" class="space-y-1">
+                            <!-- Generado dinámicamente -->
+                        </div>
+                    </div>
+
+                    <!-- Detalles de Tareas y Marcaje Derecha -->
+                    <div class="lg:col-span-8 bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between min-h-[450px]">
+                        <div>
+                            <div class="flex flex-col sm:flex-row justify-between sm:items-start gap-4 mb-4">
+                                <div class="flex items-center gap-3">
+                                    <span id="active-step-num" class="w-12 h-12 bg-[#1a1a1a] text-white flex items-center justify-center font-extrabold text-xl rounded-full">1</span>
+                                    <div>
+                                        <h2 id="active-step-title" class="text-lg font-bold text-slate-900 leading-tight">Cargando paso...</h2>
+                                        <p id="active-step-subtitle" class="text-xs text-slate-500 mt-0.5">---</p>
+                                    </div>
+                                </div>
+                                <span id="active-step-status" class="self-start sm:self-auto px-2.5 py-1 bg-amber-50 text-amber-700 text-[10px] font-extrabold rounded-full border border-amber-200 tracking-wider uppercase">Cargando...</span>
+                            </div>
+
+                            <!-- Lista de actividades en formato Checkbox -->
+                            <div class="border-t border-b border-slate-100 py-4 my-4">
+                                <h4 class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-3">Requerimientos y Tareas Técnicas</h4>
+                                <div id="active-checklist-container" class="space-y-2.5">
+                                    <!-- Checklists dinámicos -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cuadro de Meta del Paso Seleccionado -->
+                        <div class="bg-[#f0f9eb] border border-[#d2ecb8] rounded-xl p-4 flex items-center gap-3 mt-4">
+                            <div class="p-2 bg-[#96c11f] rounded-lg text-slate-950 font-bold shrink-0">
+                                <i data-lucide="target" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-extrabold uppercase text-emerald-800 block tracking-wider">Meta Clave de la Fase:</span>
+                                <p id="active-step-goal" class="text-xs font-bold text-slate-800 mt-0.5">Definir bases conceptuales y requerimientos técnicos iniciales.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-6 mt-12 shrink-0">
+        <div class="max-w-[1700px] mx-auto px-6 text-center text-slate-400 text-xs space-y-2">
+            <p>© 2026 Proceso de Gestión de Diseño. Adaptación interactiva y traducción autorizada con almacenamiento en la nube.</p>
+            <div class="flex flex-wrap justify-center gap-x-6 gap-y-2 font-medium">
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-[#028090] rounded-full inline-block"></span> Descubrir & Definir (Comprender / Idear)</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-[#0077b6] rounded-full inline-block"></span> Desarrollar & Entregar (Ejecutar)</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-[#96c11f] rounded-full inline-block"></span> Metas de Fase</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- LÓGICA DE INICIALIZACIÓN E INTEGRACIÓN CON LA NUBE (FIRESTORE) -->
+    <script type="module">
+        // Importación SDK Modular de Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, collection, setDoc, onSnapshot, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Estructura de la Metodología Oficial
+        const designSteps = [
+            {
+                id: 1,
+                title: "Inicio del Proyecto",
+                meta: "Establecer parámetros básicos del proyecto y selección del diseñador idóneo.",
+                groupTop: "Descubrir",
+                groupBottom: "Comprender",
+                color: "#028090",
+                tasks: [
+                    "El cliente identifica una necesidad o meta comercial.",
+                    "El cliente desarrolla un presupuesto preliminar razonable.",
+                    "El cliente desarrolla un cronograma o plazos preliminares.",
+                    "El cliente crea un informe creativo o brief inicial.",
+                    "El cliente identifica estudios o diseñadores potenciales.",
+                    "Reunión de discusión preliminar y revisión de portafolio.",
+                    "El cliente emite una RFP (Solicitud de propuesta de servicios).",
+                    "Los diseñadores analizan la RFP y presentan su propuesta económica y de trabajo.",
+                    "El cliente evalúa, acepta la propuesta y confirma al diseñador.",
+                    "El diseñador cobra el depósito inicial de garantía."
+                ]
+            },
+            {
+                id: 2,
+                title: "Orientación / Investigación",
+                meta: "Clarificar objetivos principales, identificar oportunidades y establecer requisitos base.",
+                groupTop: "Descubrir",
+                groupBottom: "Comprender",
+                color: "#028090",
+                tasks: [
+                    "El cliente provee datos históricos, materiales previos y documentos de referencia.",
+                    "El diseñador lidera sesiones de briefing creativo estructurado.",
+                    "Investigar el ecosistema competitivo del cliente.",
+                    "Mapear detalladamente al público objetivo (Buyer Personas).",
+                    "Ejecutar estudios de mercado si el alcance lo requiere.",
+                    "Realizar observaciones de campo, entrevistas, auditorías o cuestionarios con usuarios.",
+                    "Definir los parámetros funcionales, de ingeniería o limitaciones tecnológicas finales.",
+                    "Consolidar la evaluación de necesidades y redactar el planteamiento final del problema."
+                ]
+            },
+            {
+                id: 3,
+                title: "Estrategia",
+                meta: "Diseñar la estrategia general de marca/producto, enfoque estético y confirmar entregables.",
+                groupTop: "Definir",
+                groupBottom: "Idear",
+                color: "#028090",
+                tasks: [
+                    "Analizar a fondo y sintetizar toda la investigación y datos previos del paso anterior.",
+                    "Establecer la matriz de criterios creativos del proyecto.",
+                    "Definir los requerimientos de usabilidad o criterios funcionales finales.",
+                    "Planificar los canales y medios idóneos de entrega (impreso, web, interactivo).",
+                    "Presentar la síntesis investigativa para comentarios y visto bueno del cliente.",
+                    "Articular y redactar la estrategia formal del diseño creativo.",
+                    "Crear planes preliminares: arquitectura de información, flujos o prototipos rápidos (Wireframes).",
+                    "Obtener la firma y aprobación final de la estrategia por parte del cliente."
+                ]
+            },
+            {
+                id: 4,
+                title: "Exploración",
+                meta: "Generar conceptos preliminares de diseño creativo y evaluar la dirección conceptual.",
+                groupTop: "Definir",
+                groupBottom: "Idear",
+                color: "#028090",
+                tasks: [
+                    "Desarrollar bocetos rápidos, miniaturas conceptuales u opciones estéticas iniciales.",
+                    "Elaborar guiones gráficos (Storyboards) en proyectos dinámicos o interfaces.",
+                    "Diseñar diagramas de flujo interactivos si el proyecto es digital.",
+                    "Crear tableros de inspiración (Moodboards) de color, texturas y tipografía.",
+                    "Definir directrices de Look & Feel iniciales.",
+                    "Presentar maquetas de validación estructural (Pruebas de concepto/POP).",
+                    "Presentación de alternativas conceptuales preliminares al cliente para su validación.",
+                    "Seleccionar en conjunto una o dos ideas principales para un desarrollo robusto."
+                ]
+            },
+            {
+                id: 5,
+                title: "Desarrollo",
+                meta: "Desarrollar en detalle las ideas elegidas y seleccionar la dirección definitiva.",
+                groupTop: "Desarrollar",
+                groupBottom: "Idear",
+                color: "#0077b6",
+                tasks: [
+                    "Diseñar representaciones altamente precisas del concepto conceptual.",
+                    "Elaborar composiciones completas (Layouts detallados/Comps).",
+                    "Desarrollar animáticas conceptuales o prototipos interactivos iniciales.",
+                    "Presentar maquetaciones de páginas o pliegos típicos (en proyectos editoriales).",
+                    "Integrar textos provisionales optimizados (Copywriting preliminar).",
+                    "Utilizar imágenes de muestra o placeholders funcionales para evaluación de peso visual.",
+                    "Presentar el diseño integral estructurado al cliente para comentarios finales.",
+                    "Recibir confirmación escrita de la dirección de diseño seleccionada para refinamiento final."
+                ]
+            },
+            {
+                id: 6,
+                title: "Refinamiento",
+                meta: "Realizar ajustes precisos de los elementos estéticos y asegurar la usabilidad del producto.",
+                groupTop: "Desarrollar",
+                groupBottom: "Ejecutar",
+                color: "#0077b6",
+                tasks: [
+                    "Aplicar ajustes específicos solicitados por el cliente sobre el diseño elegido.",
+                    "Pulir elementos estéticos menores (tipografías, espaciado, colores exactos).",
+                    "Realizar pruebas con usuarios finales o validaciones funcionales (Pruebas de Usabilidad).",
+                    "Incorporar correcciones derivadas de las pruebas de usabilidad en el sistema.",
+                    "Iniciar reuniones clave de preproducción con los proveedores del proyecto.",
+                    "Confirmar especificaciones de impresión o troquelado con imprentas/talleres.",
+                    "Coordinar parámetros mecánicos o técnicos con ingenieros, ilustradores o programadores."
+                ]
+            },
+            {
+                id: 7,
+                title: "Producción",
+                meta: "Concluir la producción técnica e integrar archivos listos para lanzamiento o impresión.",
+                groupTop: "Entregar",
+                groupBottom: "Ejecutar",
+                color: "#0077b6",
+                tasks: [
+                    "Para impresión: Crear artes finales, líneas de corte, originales mecánicos listos para cámaras.",
+                    "Para digital/web: Construcción del modelado 3D, desarrollo de código limpio y pruebas de servidor.",
+                    "Para movimiento/video: Renderizar animaciones finales, masterizar pistas de audio e imagen.",
+                    "Para empaque: Preparar planos estructurales de alta resolución, pruebas de color directo (Pantones).",
+                    "Para espacios/arquitectura: Validar planos mecánicos definitivos y especificaciones de materiales."
+                ]
+            },
+            {
+                id: 8,
+                title: "Manufactura / Lanzamiento",
+                meta: "Entregar los activos listos a proveedores calificados y supervisar la salida al aire.",
+                groupTop: "Entregar",
+                groupBottom: "Ejecutar",
+                color: "#0077b6",
+                tasks: [
+                    "Entregar de forma segura todos los archivos técnicos a los proveedores asignados.",
+                    "Supervisar el proceso de preprensa, ajuste de placas y pruebas de pie de máquina.",
+                    "Monitorear el despliegue del código web en servidores productivos o tiendas de aplicaciones.",
+                    "Supervisar y gestionar el cumplimiento de los estándares de calidad del proveedor.",
+                    "Establecer la mesa de ayuda técnica o contratos de mantenimiento continuo posterior al lanzamiento."
+                ]
+            },
+            {
+                id: 9,
+                title: "Cierre del Proyecto",
+                meta: "Fortalecer la relación con el cliente, documentar el caso de estudio y liquidar contratos.",
+                groupTop: "Cierre",
+                groupBottom: "Ejecutar",
+                color: "#1a1a1a",
+                tasks: [
+                    "Realizar reunión de cierre del proyecto (debriefing/entrevista de salida).",
+                    "Analizar las métricas de éxito y fallas detectadas en el transcurso del desarrollo.",
+                    "Archivar sistemáticamente el código, archivos fuente y activos del proyecto en la nube.",
+                    "Redactar el estudio de caso técnico y creativo para portafolio de autopromoción.",
+                    "Enviar la factura de liquidación de honorarios del diseñador.",
+                    "Recibir la confirmación del pago final por parte de administración del cliente."
+                ]
+            }
+        ];
+
+        // variables provistas por el ambiente
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // Variables de estado local sincronizadas
+        let currentUser = null;
+        let activeView = 'chart';
+        let activeStepId = 1;
+        let projects = [];
+        let activeProject = null;
+
+        // Elementos de la interfaz de usuario
+        const toastEl = document.getElementById('toast');
+        const toastMessageEl = document.getElementById('toast-message');
+        const cloudStatusBadge = document.getElementById('cloud-status-badge');
+        const cloudStatusDot = document.getElementById('cloud-status-dot');
+        const cloudStatusText = document.getElementById('cloud-status-text');
+        const projectsListEl = document.getElementById('projects-list');
+        const activeProjectNameEl = document.getElementById('active-project-name');
+
+        // Notificaciones Toast (sin usar alertas molestas)
+        function showToast(message, type = 'info') {
+            toastMessageEl.innerText = message;
+            const container = document.getElementById('toast-icon-container');
+            
+            if (type === 'success') {
+                container.className = "p-1 rounded-lg bg-emerald-500 text-slate-950";
+            } else if (type === 'error') {
+                container.className = "p-1 rounded-lg bg-rose-500 text-white";
+            } else {
+                container.className = "p-1 rounded-lg bg-sky-500 text-white";
+            }
+
+            toastEl.classList.remove('opacity-0', 'translate-y-10', 'pointer-events-none');
+            setTimeout(() => {
+                toastEl.classList.add('opacity-0', 'translate-y-10', 'pointer-events-none');
+            }, 3500);
+        }
+
+        // Indicador de conexión
+        function updateCloudIndicator(status) {
+            if (status === 'syncing') {
+                cloudStatusDot.className = "relative inline-flex rounded-full h-2 w-2 bg-amber-500";
+                cloudStatusText.innerText = "Guardando...";
+                cloudStatusBadge.className = "ml-auto lg:ml-4 flex items-center gap-1.5 bg-amber-50 px-3 py-1.5 rounded-full text-[11px] font-bold text-amber-700 border border-amber-200";
+            } else if (status === 'synced') {
+                cloudStatusDot.className = "relative inline-flex rounded-full h-2 w-2 bg-emerald-500";
+                cloudStatusText.innerText = "Sincronizado";
+                cloudStatusBadge.className = "ml-auto lg:ml-4 flex items-center gap-1.5 bg-emerald-50 px-3 py-1.5 rounded-full text-[11px] font-bold text-emerald-700 border border-emerald-200";
+            } else if (status === 'error') {
+                cloudStatusDot.className = "relative inline-flex rounded-full h-2 w-2 bg-rose-500";
+                cloudStatusText.innerText = "Error de Red";
+                cloudStatusBadge.className = "ml-auto lg:ml-4 flex items-center gap-1.5 bg-rose-50 px-3 py-1.5 rounded-full text-[11px] font-bold text-rose-700 border border-rose-200";
+            }
+        }
+
+        // Inicialización y Autenticación Anónima o con Token
+        const initAuth = async () => {
+            updateCloudIndicator('syncing');
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (err) {
+                console.error("Error autenticación:", err);
+                showToast("Fallo al conectar con la nube. Modo lectura activado.", "error");
+                updateCloudIndicator('error');
+            }
+        };
+
+        // Escuchar cambios de Auth
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if (user) {
+                // Iniciar escucha en tiempo real de los proyectos compartidos
+                subscribeToProjects();
+            }
+        });
+
+        // Suscripción en Tiempo Real a Firestore (Regla 1, 2 y 3)
+        let unsubscribeProjects = null;
+        function subscribeToProjects() {
+            if (!currentUser) return;
+
+            // Ruta estricta de datos públicos (Regla 1)
+            const projectsCollection = collection(db, 'artifacts', appId, 'public', 'data', 'projects');
+
+            // Suscripción de tiempo real con onSnapshot (Regla 2: Sin queries complejos de Firebase)
+            unsubscribeProjects = onSnapshot(projectsCollection, (snapshot) => {
+                const fetchedProjects = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    fetchedProjects.push({
+                        id: doc.id,
+                        name: data.name || "Proyecto sin nombre",
+                        createdAt: data.createdAt || Date.now(),
+                        updatedAt: data.updatedAt || Date.now(),
+                        tasksState: data.tasksStateJson ? JSON.parse(data.tasksStateJson) : {}
+                    });
+                });
+
+                // Ordenar proyectos en memoria JS por fecha de actualización (Regla 2)
+                projects = fetchedProjects.sort((a, b) => b.updatedAt - a.updatedAt);
+                
+                renderProjectsList();
+
+                // Si no hay proyecto activo o el que estaba activo fue eliminado
+                if (projects.length > 0) {
+                    if (!activeProject || !projects.find(p => p.id === activeProject.id)) {
+                        selectProject(projects[0].id);
+                    } else {
+                        // Actualizar datos del proyecto activo actual con los nuevos cambios de la nube
+                        const updatedActive = projects.find(p => p.id === activeProject.id);
+                        activeProject = updatedActive;
+                        activeProjectNameEl.innerText = activeProject.name;
+                        updateChecklistProgressUI();
+                        if (activeView === 'interactive') {
+                            renderStepSelectors();
+                            selectStep(activeStepId);
+                        }
+                    }
+                } else {
+                    activeProject = null;
+                    activeProjectNameEl.innerText = "Ningún proyecto activo";
+                    updateChecklistProgressUI();
+                    if (activeView === 'interactive') {
+                        renderStepSelectors();
+                    }
+                }
+                updateCloudIndicator('synced');
+            }, (error) => {
+                console.error("Error al sincronizar base de datos:", error);
+                updateCloudIndicator('error');
+                showToast("Error de permisos al sincronizar la base de datos.", "error");
+            });
+        }
+
+        // Crear nuevo proyecto colaborativo
+        window.createNewProject = async () => {
+            if (!currentUser) {
+                showToast("Espera a que se establezca la conexión.", "error");
+                return;
+            }
+            const input = document.getElementById('newProjectName');
+            const name = input.value.trim();
+            if (!name) return;
+
+            updateCloudIndicator('syncing');
+            try {
+                const projectsCollection = collection(db, 'artifacts', appId, 'public', 'data', 'projects');
+                const initialTasksState = {};
+                
+                await addDoc(projectsCollection, {
+                    name: name,
+                    createdAt: Date.now(),
+                    updatedAt: Date.now(),
+                    tasksStateJson: JSON.stringify(initialTasksState)
+                });
+
+                input.value = "";
+                showToast(`Proyecto "${name}" creado exitosamente`, "success");
+            } catch (err) {
+                console.error("Error al crear proyecto:", err);
+                showToast("Error al guardar el proyecto en la nube.", "error");
+                updateCloudIndicator('error');
+            }
+        };
+
+        // Eliminar un proyecto
+        window.deleteProject = async (id, name, event) => {
+            event.stopPropagation(); // Evitar seleccionar el proyecto al intentar eliminarlo
+            
+            const conf = confirm(`¿Estás seguro de que quieres eliminar el proyecto "${name}"? Esta acción se reflejará para todos tus colaboradores.`);
+            if (!conf) return;
+
+            updateCloudIndicator('syncing');
+            try {
+                const projectDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'projects', id);
+                await deleteDoc(projectDocRef);
+                showToast(`Proyecto "${name}" eliminado`, "success");
+            } catch (err) {
+                console.error("Error al borrar:", err);
+                showToast("Fallo al eliminar el proyecto de la nube.", "error");
+                updateCloudIndicator('error');
+            }
+        };
+
+        // Seleccionar proyecto para visualizar/editar
+        window.selectProject = (id) => {
+            const found = projects.find(p => p.id === id);
+            if (found) {
+                activeProject = found;
+                activeProjectNameEl.innerText = activeProject.name;
+                updateChecklistProgressUI();
+                renderStepSelectors();
+                selectStep(activeStepId);
+                renderProjectsList(); // Actualizar clases de proyecto activo
+            }
+        };
+
+        // Dibujar proyectos en el sidebar
+        function renderProjectsList() {
+            projectsListEl.innerHTML = "";
+
+            if (projects.length === 0) {
+                projectsListEl.innerHTML = `
+                    <div class="text-center py-6 text-slate-400 text-xs bg-white rounded-xl border border-dashed border-slate-200">
+                        <i data-lucide="folder-plus" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
+                        No hay proyectos activos.<br>Crea uno arriba.
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            projects.forEach(p => {
+                const isActive = activeProject && activeProject.id === p.id;
+                
+                // Calcular progreso del proyecto
+                let totalTasks = 0;
+                let completedTasks = 0;
+                designSteps.forEach(step => {
+                    totalTasks += step.tasks.length;
+                    const stepTasks = p.tasksState[step.id] || {};
+                    completedTasks += Object.values(stepTasks).filter(Boolean).length;
+                });
+                const pct = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+                const item = document.createElement('div');
+                item.onclick = () => selectProject(p.id);
+                item.className = `p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group ${isActive ? 'bg-[#028090] text-white border-[#028090] shadow-sm' : 'bg-white text-slate-800 border-slate-200 hover:bg-slate-50'}`;
+                
+                item.innerHTML = `
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs font-bold truncate ${isActive ? 'text-white' : 'text-slate-800'}">${p.name}</p>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-[9px] font-bold ${isActive ? 'text-teal-100' : 'text-slate-400'} uppercase">Progreso: ${pct}%</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <div class="w-16 bg-slate-100 rounded-full h-1.5 overflow-hidden ${isActive ? 'bg-teal-900' : 'bg-slate-100'}">
+                            <div class="h-full rounded-full ${isActive ? 'bg-white' : 'bg-[#028090]'}" style="width: ${pct}%"></div>
+                        </div>
+                        <button onclick="deleteProject('${p.id}', '${p.name}', event)" class="p-1 rounded-md text-slate-400 hover:text-red-500 hover:bg-slate-100 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 ${isActive ? 'hover:bg-teal-800 text-teal-200' : ''}">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                `;
+                projectsListEl.appendChild(item);
+            });
+            lucide.createIcons();
+        }
+
+        // Marcar/Desmarcar una tarea en el checklist
+        window.toggleTask = async (stepId, taskIndex, isChecked) => {
+            if (!activeProject) {
+                showToast("Crea o selecciona un proyecto antes de marcar tareas.", "error");
+                return;
+            }
+
+            // Actualización optimista local
+            if (!activeProject.tasksState[stepId]) {
+                activeProject.tasksState[stepId] = {};
+            }
+            activeProject.tasksState[stepId][taskIndex] = isChecked;
+
+            updateChecklistProgressUI();
+            updateStepStatusHeader(stepId);
+
+            updateCloudIndicator('syncing');
+
+            try {
+                // Guardado en la nube con Firestore
+                const projectDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'projects', activeProject.id);
+                await setDoc(projectDocRef, {
+                    updatedAt: Date.now(),
+                    tasksStateJson: JSON.stringify(activeProject.tasksState)
+                }, { merge: true });
+                updateCloudIndicator('synced');
+            } catch (err) {
+                console.error("Error al actualizar tarea:", err);
+                showToast("Fallo de conexión. No se pudo guardar el cambio.", "error");
+                updateCloudIndicator('error');
+            }
+        };
+
+        // Reiniciar todo el checklist del proyecto activo actual
+        window.resetActiveProjectChecklist = async () => {
+            if (!activeProject) return;
+
+            const conf = confirm(`¿Estás seguro de que quieres limpiar todo el progreso del proyecto "${activeProject.name}"?`);
+            if (!conf) return;
+
+            updateCloudIndicator('syncing');
+            try {
+                const projectDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'projects', activeProject.id);
+                await setDoc(projectDocRef, {
+                    updatedAt: Date.now(),
+                    tasksStateJson: JSON.stringify({})
+                }, { merge: true });
+                showToast("Progreso del proyecto reiniciado", "success");
+            } catch (err) {
+                console.error("Error al reiniciar progreso:", err);
+                updateCloudIndicator('error');
+            }
+        };
+
+        // Renderizar los selectores de pasos del checklist interactivo
+        window.renderStepSelectors = () => {
+            const container = document.getElementById('step-selector-container');
+            container.innerHTML = "";
+
+            designSteps.forEach(step => {
+                const btn = document.createElement('button');
+                btn.id = `selector-step-${step.id}`;
+                btn.onclick = () => selectStep(step.id);
+                btn.className = "w-full text-left p-2.5 rounded-lg border border-slate-100 hover:bg-slate-50 transition-all flex items-center justify-between group";
+                
+                // Calcular progreso local por paso
+                const completedCount = getCompletedTasksCount(step.id);
+                const totalCount = step.tasks.length;
+                const pct = Math.round((completedCount / totalCount) * 100);
+
+                btn.innerHTML = `
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="w-6 h-6 shrink-0 bg-slate-100 text-slate-800 rounded-full flex items-center justify-center font-bold text-[11px] group-hover:bg-[#1a1a1a] group-hover:text-white transition-all">${step.id}</span>
+                        <div class="min-w-0">
+                            <p class="text-xs font-bold text-slate-800 truncate leading-tight">${step.title}</p>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">${step.groupTop}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <span class="text-[9px] font-extrabold text-slate-500">${pct}%</span>
+                        <div class="w-1.5 h-1.5 rounded-full ${pct === 100 ? 'bg-emerald-500' : pct > 0 ? 'bg-amber-500' : 'bg-slate-200'}"></div>
+                    </div>
+                `;
+                container.appendChild(btn);
+            });
+        };
+
+        // Seleccionar paso en la vista de checklist
+        window.selectStep = (id) => {
+            activeStepId = id;
+            const step = designSteps.find(s => s.id === id);
+            if (!step) return;
+            
+            // Actualizar clases activas en el menú lateral de pasos
+            designSteps.forEach(s => {
+                const el = document.getElementById(`selector-step-${s.id}`);
+                if (el) {
+                    if (s.id === id) {
+                        el.className = "w-full text-left p-2.5 rounded-lg border border-[#028090]/30 bg-[#f0f7f8] border-l-4 border-l-[#028090] transition-all flex items-center justify-between group";
+                    } else {
+                        el.className = "w-full text-left p-2.5 rounded-lg border border-slate-100 hover:bg-slate-50 transition-all flex items-center justify-between group";
+                    }
+                }
+            });
+
+            // Actualizar interfaz detallada
+            document.getElementById('active-step-num').innerText = step.id;
+            document.getElementById('active-step-title').innerText = step.title;
+            document.getElementById('active-step-subtitle').innerText = `Fase superior: ${step.groupTop} | Secuencia: ${step.groupBottom}`;
+            document.getElementById('active-step-goal').innerText = step.meta;
+
+            // Renderizar checklist de tareas
+            const checklistContainer = document.getElementById('active-checklist-container');
+            checklistContainer.innerHTML = "";
+
+            step.tasks.forEach((task, index) => {
+                const checked = isTaskCompleted(step.id, index);
+                
+                const label = document.createElement('label');
+                label.className = `flex items-start gap-3 p-2 rounded-lg border transition-all cursor-pointer ${checked ? 'bg-emerald-50/40 border-emerald-100 text-slate-500' : 'bg-slate-50/50 border-slate-150 hover:bg-slate-100/70 text-slate-800'}`;
+                
+                label.innerHTML = `
+                    <input type="checkbox" onchange="toggleTask(${step.id}, ${index}, this.checked)" ${checked ? 'checked' : ''} 
+                           class="mt-1 w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300">
+                    <span class="text-xs leading-relaxed ${checked ? 'line-through opacity-70' : 'font-medium'}">${task}</span>
+                `;
+                checklistContainer.appendChild(label);
+            });
+
+            updateStepStatusHeader(step.id);
+        };
+
+        // Utilidades de evaluación del Checklist
+        function isTaskCompleted(stepId, index) {
+            if (!activeProject || !activeProject.tasksState[stepId]) return false;
+            return activeProject.tasksState[stepId][index] === true;
+        }
+
+        function getCompletedTasksCount(stepId) {
+            if (!activeProject || !activeProject.tasksState[stepId]) return 0;
+            return Object.values(activeProject.tasksState[stepId]).filter(Boolean).length;
+        }
+
+        function updateStepStatusHeader(stepId) {
+            const step = designSteps.find(s => s.id === stepId);
+            const total = step.tasks.length;
+            const completed = getCompletedTasksCount(stepId);
+            const badge = document.getElementById('active-step-status');
+
+            if (completed === 0) {
+                badge.innerText = "No Iniciado";
+                badge.className = "px-2.5 py-1 bg-slate-100 text-slate-500 text-[10px] font-extrabold rounded-full border border-slate-200 tracking-wider uppercase";
+            } else if (completed === total) {
+                badge.innerText = "Completado";
+                badge.className = "px-2.5 py-1 bg-emerald-100 text-emerald-800 text-[10px] font-extrabold rounded-full border border-emerald-200 tracking-wider uppercase";
+            } else {
+                badge.innerText = `En progreso (${completed}/${total})`;
+                badge.className = "px-2.5 py-1 bg-amber-50 text-amber-700 text-[10px] font-extrabold rounded-full border border-amber-200 tracking-wider uppercase";
+            }
+        }
+
+        // Barra de progreso y cálculo porcentual
+        function updateChecklistProgressUI() {
+            if (!activeProject) {
+                document.getElementById('progress-percent').innerText = "0%";
+                document.getElementById('progress-fill').style.width = "0%";
+                return;
+            }
+
+            let totalTasks = 0;
+            let completedTasks = 0;
+
+            designSteps.forEach(step => {
+                totalTasks += step.tasks.length;
+                completedTasks += getCompletedTasksCount(step.id);
+            });
+
+            const percent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+            document.getElementById('progress-percent').innerText = `${percent}%`;
+            document.getElementById('progress-fill').style.width = `${percent}%`;
+        }
+
+        // Alternar vistas principales
+        window.switchView = (viewName) => {
+            activeView = viewName;
+            const chartView = document.getElementById('view-chart');
+            const interactiveView = document.getElementById('view-interactive');
+            
+            const btnChart = document.getElementById('btn-view-chart');
+            const btnInteractive = document.getElementById('btn-view-interactive');
+
+            if (viewName === 'chart') {
+                chartView.classList.remove('hidden');
+                interactiveView.classList.add('hidden');
+                
+                btnChart.className = "flex-1 md:flex-initial px-3 py-1.5 rounded-md text-xs font-semibold bg-white text-slate-900 shadow-sm transition-all flex items-center justify-center gap-1.5";
+                btnInteractive.className = "flex-1 md:flex-initial px-3 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center gap-1.5";
+            } else {
+                chartView.classList.add('hidden');
+                interactiveView.classList.remove('hidden');
+                
+                btnChart.className = "flex-1 md:flex-initial px-3 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center gap-1.5";
+                btnInteractive.className = "flex-1 md:flex-initial px-3 py-1.5 rounded-md text-xs font-semibold bg-white text-slate-900 shadow-sm transition-all flex items-center justify-center gap-1.5";
+                
+                renderStepSelectors();
+                selectStep(activeStepId);
+            }
+        };
+
+        // Buscador Inteligente
+        function setupSearch() {
+            const input = document.getElementById('searchInput');
+            input.addEventListener('input', function(e) {
+                const query = e.target.value.toLowerCase().trim();
+                const stepCards = document.querySelectorAll('.step-card');
+
+                if (query === "") {
+                    stepCards.forEach(card => {
+                        card.classList.remove('bg-yellow-50', 'ring-2', 'ring-yellow-400', 'opacity-40');
+                        card.classList.add('opacity-100');
+                    });
+                    return;
+                }
+
+                stepCards.forEach(card => {
+                    const text = card.innerText.toLowerCase();
+                    const matched = text.includes(query);
+
+                    if (matched) {
+                        card.classList.add('bg-yellow-50/70', 'ring-2', 'ring-yellow-400');
+                        card.classList.remove('opacity-40');
+                    } else {
+                        card.classList.remove('bg-yellow-50/70', 'ring-2', 'ring-yellow-400');
+                        card.classList.add('opacity-40');
+                    }
+                });
+            });
+        }
+
+        // Control para abrir/cerrar menú de proyectos móvil
+        window.toggleSidebar = () => {
+            const sidebar = document.getElementById('project-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        };
+
+        // Inicialización tras cargar DOM
+        window.onload = function() {
+            lucide.createIcons();
+            initAuth();
+            setupSearch();
+        };
+
+    </script>
+</body>
+</html>
