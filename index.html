@@ -40,6 +40,7 @@
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col antialiased">
 
+
     <!-- Notificación Toast Personalizada (Reemplaza a los alerts nativos) -->
     <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-10 opacity-0 pointer-events-none transition-all duration-300 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-slate-800 max-w-sm">
         <div id="toast-icon-container" class="p-1 rounded-lg bg-[#2BE562] text-slate-950">
@@ -64,6 +65,30 @@
                 </button>
                 <button id="confirm-modal-action" class="flex-1 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-lg transition-colors">
                     Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Personalizado para Renombrar Proyectos -->
+    <div id="rename-project-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs hidden transition-all duration-300">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 transform transition-all scale-95 duration-200" id="rename-modal-box">
+            <div class="w-12 h-12 rounded-full bg-sky-50 text-[#028090] flex items-center justify-center mb-4">
+                <i data-lucide="pencil" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-base font-bold text-slate-900" id="rename-modal-title">Cambiar nombre del proyecto</h3>
+            <p class="text-xs text-slate-500 mt-2 leading-relaxed">Ingresa el nuevo nombre o descripción para identificar este espacio de trabajo.</p>
+            
+            <div class="mt-4">
+                <input type="text" id="rename-modal-input" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#028090] focus:bg-white transition-all font-semibold">
+            </div>
+
+            <div class="flex gap-3 mt-6">
+                <button id="rename-modal-cancel" class="flex-1 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors">
+                    Cancelar
+                </button>
+                <button id="rename-modal-action" class="flex-1 px-4 py-2 bg-[#028090] hover:bg-[#016875] text-white text-xs font-semibold rounded-lg transition-colors">
+                    Guardar
                 </button>
             </div>
         </div>
@@ -121,6 +146,7 @@
             </div>
         </div>
     </div>
+
 
     <!-- Encabezado Principal -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-40 px-4 md:px-6 py-4 shadow-sm">
@@ -184,7 +210,12 @@
             <div class="flex items-center gap-2">
                 <i data-lucide="users" class="text-[#028090] w-4 h-4"></i>
                 <span class="text-xs font-bold text-[#028090] uppercase tracking-wider">Espacio de Trabajo:</span>
-                <span id="active-project-name" class="text-sm font-semibold text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-xs">Cargando proyecto...</span>
+                <div class="flex items-center gap-1">
+                    <span id="active-project-name" class="text-sm font-semibold text-slate-800 bg-white px-2.5 py-0.5 rounded-l border border-r-0 border-slate-200 shadow-xs">Cargando proyecto...</span>
+                    <button onclick="triggerActiveProjectRename()" class="p-1 text-slate-500 hover:text-slate-800 hover:bg-slate-200 bg-white border border-slate-200 rounded-r shadow-xs transition-colors flex items-center justify-center" title="Editar nombre del proyecto">
+                        <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
             </div>
             
             <div class="flex items-center gap-4 w-full sm:w-auto justify-end">
@@ -200,6 +231,7 @@
             </div>
         </div>
     </div>
+
 
     <!-- Contenedor Principal con Distribución de Panel Lateral -->
     <div class="flex-grow flex flex-col lg:flex-row max-w-[1750px] w-full mx-auto p-4 md:p-6 gap-6">
@@ -251,6 +283,7 @@
 
         <!-- Fondo opaco para cerrar menú móvil al tocar fuera -->
         <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 hidden lg:hidden"></div>
+
 
         <!-- AREA DE TRABAJO (Panel Derecho/Centro) -->
         <div class="flex-1 flex flex-col min-w-0">
@@ -401,6 +434,7 @@
                                 </ul>
                             </div>
 
+
                             <!-- Columna 3 -->
                             <div class="p-3 text-[11px] text-slate-700 leading-relaxed space-y-2.5 border-r border-slate-200 h-full step-card" data-step="3">
                                 <ul class="list-disc pl-4 space-y-2">
@@ -475,17 +509,14 @@
                                     <li>El diseñador presenta lo anterior al cliente para discusión, aportaciones y aprobación final.</li>
                                     <li>Se pueden realizar pruebas del diseño, lo que puede llevar a otra ronda de refinamientos. Las pruebas pueden incluir:
                                         <ul class="list-none pl-3 italic text-slate-500 my-1 space-y-0.5">
-                                            <li>— Validación del cliente</li>
-                                            <li>— Pruebas de usabilidad</li>
-                                            <li>— Presentación de refinamientos adicionales al cliente para su aprobación</li>
+                                            <li>— Usabilidad y validación</li>
+                                            <li>— Pruebas con usuarios finales</li>
                                         </ul>
                                     </li>
                                     <li>El diseñador inicia reuniones de preproducción con miembros adicionales del equipo técnico si es necesario:
                                         <ul class="list-none pl-3 italic text-slate-500 my-1 space-y-0.5">
                                             <li>— Impresores / Talleres de troquelado</li>
-                                            <li>— Manufacturero</li>
-                                            <li>— Fotógrafo / Ilustradores</li>
-                                            <li>— Ingenieros de audio o programadores</li>
+                                            <li>— Manufacturero / Desarrolladores</li>
                                         </ul>
                                     </li>
                                 </ul>
@@ -653,6 +684,7 @@
                 </div>
             </div>
 
+
             <!-- VISTA INTERACTIVA (WORKFLOW / CHECKLIST) -->
             <div id="view-interactive" class="hidden transition-opacity duration-300">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -713,6 +745,7 @@
             <p>Ailoviu Design® 2026 Proceso de Gestión de Diseño.</p>
         </div>
     </footer>
+
 
     <!-- LÓGICA DE INICIALIZACIÓN E INTEGRACIÓN CON LA NUBE (FIRESTORE) -->
     <script type="module">
@@ -880,6 +913,7 @@
             }
         ];
 
+
         // Claves persistentes
         const LOCAL_STORAGE_KEY = 'gestor_proyectos_diseno_local';
         const CUSTOM_FIREBASE_KEY = 'gestor_proyectos_custom_firebase_config';
@@ -914,7 +948,7 @@
         let auth = null;
         let appId = 'default-app-id';
         let isCloudMode = false;
-        let unsubscribeProjects = null; // DECLARADA CORRECTAMENTE (Arregla bug #1)
+        let unsubscribeProjects = null;
 
         // Variables de estado local
         let currentUser = null;
@@ -951,7 +985,7 @@
             }, 3500);
         }
 
-        // Modal de Confirmación Personalizado (Arregla bug de alerts/confirm nativos que bloquean sandbox)
+        // Modal de Confirmación Personalizado (Reemplaza confirm() nativo de forma estética)
         function askConfirmation(title, message, onConfirm) {
             const modal = document.getElementById('custom-confirm-modal');
             const titleEl = document.getElementById('confirm-modal-title');
@@ -974,6 +1008,91 @@
             };
         }
 
+
+        // Modal para Renombrar Proyectos (Previene bloqueos de prompts nativos en Sandbox)
+        function askRenameProject(projectId, currentName, onConfirm) {
+            const modal = document.getElementById('rename-project-modal');
+            const inputEl = document.getElementById('rename-modal-input');
+            const cancelBtn = document.getElementById('rename-modal-cancel');
+            const actionBtn = document.getElementById('rename-modal-action');
+
+            inputEl.value = currentName;
+            modal.classList.remove('hidden');
+            setTimeout(() => inputEl.focus(), 150);
+
+            const closeModal = () => {
+                modal.classList.add('hidden');
+            };
+
+            cancelBtn.onclick = closeModal;
+            
+            // Función interna para procesar la acción de guardar
+            const handleRename = () => {
+                const newName = inputEl.value.trim();
+                if (newName && newName !== currentName) {
+                    onConfirm(newName);
+                }
+                closeModal();
+            };
+
+            actionBtn.onclick = handleRename;
+
+            // Enviar con tecla Enter en el input
+            inputEl.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    handleRename();
+                }
+            };
+        }
+
+        // Ejecutar renombrado desde la barra de progreso del proyecto activo
+        window.triggerActiveProjectRename = () => {
+            if (!activeProject) {
+                showToast("Primero selecciona o crea un proyecto activo.", "error");
+                return;
+            }
+            window.openRenameProjectModal(activeProject.id, activeProject.name);
+        };
+
+        // Disparar modal de cambio de nombre
+        window.openRenameProjectModal = (projectId, currentName, event) => {
+            if (event) event.stopPropagation(); // Evita clics involuntarios de selección
+
+            askRenameProject(projectId, currentName, async (newName) => {
+                if (isCloudMode && currentUser && db) {
+                    updateCloudIndicator('syncing');
+                    try {
+                        const projectDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'projects', projectId);
+                        await setDoc(projectDocRef, {
+                            name: newName,
+                            updatedAt: Date.now()
+                        }, { merge: true });
+                        showToast(`Proyecto renombrado a "${newName}"`, "success");
+                    } catch (err) {
+                        console.error("Error renombrando en la nube:", err);
+                        showToast("Fallo al guardar el cambio en la nube.", "error");
+                        updateCloudIndicator('error');
+                    }
+                } else {
+                    const idx = projects.findIndex(p => p.id === projectId);
+                    if (idx !== -1) {
+                        projects[idx].name = newName;
+                        projects[idx].updatedAt = Date.now();
+                        saveLocalProjects(projects);
+                        
+                        // Si era el proyecto activo, actualizar su estado en memoria
+                        if (activeProject && activeProject.id === projectId) {
+                            activeProject.name = newName;
+                            activeProjectNameEl.innerText = newName;
+                        }
+
+                        renderProjectsList();
+                        showToast(`Proyecto renombrado a "${newName}" localmente`, "success");
+                    }
+                }
+            });
+        };
+
         // Cambiar el estado visual del indicador de sincronización
         function updateCloudIndicator(status) {
             if (status === 'syncing') {
@@ -986,7 +1105,7 @@
                 cloudStatusBadge.className = "ml-auto lg:ml-4 flex items-center gap-1.5 bg-emerald-50 px-3 py-1.5 rounded-full text-[11px] font-bold text-emerald-700 border border-emerald-200";
             } else if (status === 'local') {
                 cloudStatusDot.className = "relative inline-flex rounded-full h-2 w-2 bg-blue-500";
-                cloudStatusText.innerText = "Local (GitHub)";
+                cloudStatusText.innerText = "Local (Navegador)";
                 cloudStatusBadge.className = "ml-auto lg:ml-4 flex items-center gap-1.5 bg-blue-50 px-3 py-1.5 rounded-full text-[11px] font-bold text-blue-700 border border-blue-200";
                 cloudStatusBadge.title = "Guardando en este navegador.";
             } else if (status === 'error') {
@@ -995,6 +1114,7 @@
                 cloudStatusBadge.className = "ml-auto lg:ml-4 flex items-center gap-1.5 bg-rose-50 px-3 py-1.5 rounded-full text-[11px] font-bold text-rose-700 border border-rose-200";
             }
         }
+
 
         async function initAppStorage() {
             // Evaluaciones seguras usando el objeto global window (Arregla bug #3)
@@ -1106,6 +1226,7 @@
                 console.error("Error escribiendo en LocalStorage:", e);
             }
         }
+
 
         function subscribeToProjects() {
             if (!currentUser || !db) return;
@@ -1250,6 +1371,7 @@
             }
         };
 
+
         function renderProjectsList() {
             projectsListEl.innerHTML = "";
 
@@ -1281,18 +1403,28 @@
                 item.onclick = () => selectProject(p.id);
                 item.className = `p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group ${isActive ? 'bg-[#028090] text-white border-[#028090] shadow-sm' : 'bg-white text-slate-800 border-slate-200 hover:bg-slate-50'}`;
                 
+                // Sanitizar nombres de proyectos para evitar bugs de comillas en llamadas onclick
+                const escapedName = p.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
                 item.innerHTML = `
-                    <div class="min-w-0 flex-1">
+                    <div class="min-w-0 flex-1 pr-2">
                         <p class="text-xs font-bold truncate ${isActive ? 'text-white' : 'text-slate-800'}">${p.name}</p>
                         <div class="flex items-center gap-2 mt-1">
                             <span class="text-[9px] font-bold ${isActive ? 'text-teal-100' : 'text-slate-400'} uppercase">Progreso: ${pct}%</span>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2 shrink-0">
-                        <div class="w-16 bg-slate-100 rounded-full h-1.5 overflow-hidden ${isActive ? 'bg-teal-900' : 'bg-slate-100'}">
+                    <div class="flex items-center gap-1 shrink-0">
+                        <div class="w-12 bg-slate-100 rounded-full h-1.5 overflow-hidden ${isActive ? 'bg-teal-900' : 'bg-slate-100'} mr-1">
                             <div class="h-full rounded-full ${isActive ? 'bg-white' : 'bg-[#028090]'}" style="width: ${pct}%"></div>
                         </div>
-                        <button onclick="deleteProject('${p.id}', '${p.name}', event)" class="p-1 rounded-md text-slate-400 hover:text-red-500 hover:bg-slate-100 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 ${isActive ? 'hover:bg-teal-800 text-teal-200' : ''}">
+                        
+                        <!-- Botón de Editar Nombre -->
+                        <button onclick="openRenameProjectModal('${p.id}', '${escapedName}', event)" class="p-1 rounded-md text-slate-400 hover:text-[#028090] hover:bg-slate-100 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 ${isActive ? 'hover:bg-teal-800 text-teal-200 hover:text-white' : ''}" title="Renombrar">
+                            <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                        </button>
+
+                        <!-- Botón de Borrar Proyecto -->
+                        <button onclick="deleteProject('${p.id}', '${escapedName}', event)" class="p-1 rounded-md text-slate-400 hover:text-red-500 hover:bg-slate-100 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 ${isActive ? 'hover:bg-teal-800 text-teal-200 hover:text-white' : ''}">
                             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                         </button>
                     </div>
@@ -1301,6 +1433,7 @@
             });
             if (window.lucide) window.lucide.createIcons();
         }
+
 
         // Guardar estado al marcar un checklist (con validaciones defensivas)
         window.toggleTask = async (stepId, taskIndex, isChecked) => {
@@ -1414,6 +1547,7 @@
                 container.appendChild(btn);
             });
         };
+
 
         // Cambiar selección de paso para mostrar su checklist detallado
         window.selectStep = (id) => {
@@ -1530,6 +1664,7 @@
                 selectStep(activeStepId);
             }
         };
+
 
         // Configuración de búsqueda inteligente sobre la matriz
         function setupSearch() {
